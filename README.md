@@ -1,4 +1,4 @@
-# express-rdy-basics
+# BW-Trading-Bot
 
 This is a basic express server with some basic middlewares and routes.
 
@@ -40,6 +40,6 @@ npm run dev
 
 ## Features
 
-- 
+-
 
 ## How to build your backend in top of this project
