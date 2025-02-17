@@ -17,34 +17,34 @@ import { ResponseDTO } from "../responses/response.dto";
  */
 
 export class ResponseErrorDto extends ResponseDTO {
-  details?: any;
-  description: string;
+    details?: any;
+    description: string;
 
-  static fromUnknownError(error: Error): ResponseErrorDto {
-    if (error instanceof CustomError) {
-      return new ResponseErrorDto(error);
+    static fromUnknownError(error: Error): ResponseErrorDto {
+        if (error instanceof CustomError) {
+            return new ResponseErrorDto(error);
+        }
+
+        return new ResponseErrorDto(new InternalServerError());
     }
 
-    return new ResponseErrorDto(new InternalServerError());
-  }
+    constructor(error: CustomError, details?: any) {
+        super();
+        this.message = error.message;
+        this.description = error.errorCode;
+        this.code = error.statusCode;
+        this.success = false;
+        const errorDetails = error.details || {};
+        this.details = { ...errorDetails, ...details };
+    }
 
-  constructor(error: CustomError, details?: any) {
-    super();
-    this.message = error.message;
-    this.description = error.errorCode;
-    this.code = error.statusCode;
-    this.success = false;
-    const errorDetails = error.details || {};
-    this.details = { ...errorDetails, ...details };
-  }
-
-  toJson(): Record<string, any> {
-    return {
-      message: this.message,
-      description: this.description,
-      success: this.success,
-      code: this.code,
-      details: this.details,
-    };
-  }
+    toJson(): Record<string, any> {
+        return {
+            message: this.message,
+            description: this.description,
+            success: this.success,
+            code: this.code,
+            details: this.details,
+        };
+    }
 }

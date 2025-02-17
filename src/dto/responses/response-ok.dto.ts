@@ -18,29 +18,29 @@ import { ResponseDTO } from "./response.dto";
  */
 
 export class ResponseOkDto<
-  T extends { [key: string]: any }
+    T extends { [key: string]: any }
 > extends ResponseDTO {
-  data?: T | T[] | PaginatedDataDto<T>;
+    data?: T | T[] | PaginatedDataDto<T>;
 
-  constructor(
-    message: string,
-    code: number = 200,
-    data?: T | T[] | PaginatedDataDto<T>
-  ) {
-    super();
-    this.success = true;
-    this.code = code;
+    constructor(
+        message: string,
+        code: number = 200,
+        data?: T | T[] | PaginatedDataDto<T>
+    ) {
+        super();
+        this.success = true;
+        this.code = code;
 
-    this.message = message;
-    this.data = data;
-  }
+        this.message = message;
+        this.data = data;
+    }
 
-  toJson(): Record<string, any> {
-    return {
-      data: this.data,
-      message: this.message,
-      success: this.success,
-      code: this.code,
-    };
-  }
+    toJson(): Record<string, any> {
+        return {
+            data: this.data,
+            message: this.message,
+            success: this.success,
+            code: this.code,
+        };
+    }
 }

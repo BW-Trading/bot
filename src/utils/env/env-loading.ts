@@ -9,61 +9,61 @@ import { EnvVarType, validateEnvVariable } from "./validate-env-variable";
 require("dotenv").config();
 
 export const getEnvVariable = <T>(key: string, type: EnvVarType): T => {
-  const value = process.env[key];
+    const value = process.env[key];
 
-  if (!value) {
-    console.error(`Environment variable ${key} is required`);
-    process.exit(1);
-  }
-
-  let validated;
-  try {
-    validated = validateEnvVariable<T>(value, type, key);
-  } catch (error) {
-    if (error instanceof VarEnvValidationError) {
-      console.error(
-        `Error validating environment variable ${key}: ${error.toLogObject()}`
-      );
-      process.exit(1);
+    if (!value) {
+        console.error(`Environment variable ${key} is required`);
+        process.exit(1);
     }
-  }
 
-  if (!validated) {
-    console.error(`Error validating environment variable ${key}`);
-    process.exit(1);
-  }
+    let validated;
+    try {
+        validated = validateEnvVariable<T>(value, type, key);
+    } catch (error) {
+        if (error instanceof VarEnvValidationError) {
+            console.error(
+                `Error validating environment variable ${key}: ${error.toLogObject()}`
+            );
+            process.exit(1);
+        }
+    }
 
-  return validated;
+    if (!validated) {
+        console.error(`Error validating environment variable ${key}`);
+        process.exit(1);
+    }
+
+    return validated;
 };
 
 export const getOptionalEnvVariable = <T>(
-  key: string,
-  type: EnvVarType
+    key: string,
+    type: EnvVarType
 ): T | undefined => {
-  const value = process.env[key];
+    const value = process.env[key];
 
-  if (!value) {
-    console.warn(
-      `Environment variable ${key} is not set but retrieved optionally.`
-    );
-    return undefined;
-  }
-
-  let validated;
-  try {
-    validated = validateEnvVariable<T>(value, type, key);
-  } catch (error) {
-    if (error instanceof VarEnvValidationError) {
-      console.error(
-        `Error validating environment variable ${key}: ${error.message}`
-      );
-      process.exit(1);
+    if (!value) {
+        console.warn(
+            `Environment variable ${key} is not set but retrieved optionally.`
+        );
+        return undefined;
     }
-  }
 
-  if (!validated) {
-    console.warn(`Error validating environment variable ${key}`);
-  }
+    let validated;
+    try {
+        validated = validateEnvVariable<T>(value, type, key);
+    } catch (error) {
+        if (error instanceof VarEnvValidationError) {
+            console.error(
+                `Error validating environment variable ${key}: ${error.message}`
+            );
+            process.exit(1);
+        }
+    }
 
-  return validated;
+    if (!validated) {
+        console.warn(`Error validating environment variable ${key}`);
+    }
+
+    return validated;
 };

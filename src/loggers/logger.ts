@@ -15,38 +15,38 @@ const { combine, timestamp, prettyPrint } = format;
 const logsPath = path.resolve(process.cwd(), appEnv.logs.logs_path);
 
 const transport = new DailyRotateFile({
-  level: "info",
-  filename: path.resolve(logsPath, "application-%DATE%.log"),
-  datePattern: "YYYY-MM-DD-HH",
-  zippedArchive: true,
-  maxSize: "20m",
-  maxFiles: "14d",
+    level: "info",
+    filename: path.resolve(logsPath, "application-%DATE%.log"),
+    datePattern: "YYYY-MM-DD-HH",
+    zippedArchive: true,
+    maxSize: "20m",
+    maxFiles: "14d",
 });
 
 const errorTransport = new DailyRotateFile({
-  level: "error",
-  filename: path.resolve(logsPath, "error-%DATE%.log"),
-  datePattern: "YYYY-MM-DD-HH",
-  zippedArchive: true,
-  maxSize: "20m",
-  maxFiles: "14d",
+    level: "error",
+    filename: path.resolve(logsPath, "error-%DATE%.log"),
+    datePattern: "YYYY-MM-DD-HH",
+    zippedArchive: true,
+    maxSize: "20m",
+    maxFiles: "14d",
 });
 
 export const logger = createLogger({
-  silent: false,
-  level: "info",
-  format: combine(
-    format.json(),
-    timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-    prettyPrint()
-  ),
-  transports: [transport, errorTransport],
+    silent: false,
+    level: "info",
+    format: combine(
+        format.json(),
+        timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+        prettyPrint()
+    ),
+    transports: [transport, errorTransport],
 });
 
 if (appEnv.logs.console_logs) {
-  logger.add(
-    new transports.Console({
-      format: format.simple(),
-    })
-  );
+    logger.add(
+        new transports.Console({
+            format: format.simple(),
+        })
+    );
 }

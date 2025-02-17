@@ -1,5 +1,5 @@
 export enum ValidationType {
-  BODY = "body",
-  QUERY = "query",
-  PARAMS = "params",
+    BODY = "body",
+    QUERY = "query",
+    PARAMS = "params",
 }
