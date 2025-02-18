@@ -22,4 +22,12 @@ export const appEnv = {
         console_logs: getOptionalEnvVariable<Boolean>("LOG_CONSOLE", "boolean"),
         logs_path: getEnvVariable<string>("LOGS_PATH", "string"),
     },
+    database: {
+        host: getEnvVariable<string>("DATABASE_HOST", "string"),
+        port: getEnvVariable<string>("DATABASE_PORT", "string"),
+        name: getEnvVariable<string>("DATABASE_NAME", "string"),
+        user: getEnvVariable<string>("DATABASE_USER", "string"),
+        password: getEnvVariable<string>("DATABASE_PASSWORD", "string"),
+        type: getEnvVariable<string>("DATABASE_TYPE", "string"),
+    },
 };
