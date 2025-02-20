@@ -15,7 +15,11 @@ RecupDataRouter.get(
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             const symbol = req.query.symbol as string;
-            const tickerPrice = await recupDataService.getTickerPrice(symbol);
+            const symbols = req.query.symbols as string[];
+            const tickerPrice = await recupDataService.getTickerPrice(
+                symbol,
+                symbols
+            );
             sendResponse(
                 res,
                 new ResponseOkDto(
@@ -69,11 +73,16 @@ RecupDataRouter.get(
             const symbol = req.query.symbol as string;
             const interval = (req.query.interval as string) || "1d"; // 1 jour par défaut
             const limit = parseInt(req.query.limit as string) || 100; // 100 bougies par défaut
-
+            const startTime = parseInt(req.query.startTime as string) || 0;
+            const endTime = parseInt(req.query.endTime as string) || 0;
+            const timeZone = (req.query.timeZone as string) || "UTC";
             const marketHistory = await recupDataService.getMarketHistory(
                 symbol,
                 interval,
-                limit
+                limit,
+                startTime,
+                endTime,
+                timeZone
             );
             sendResponse(
                 res,
