@@ -1,0 +1,14 @@
+services:
+    bw-trading-pg:
+        image: postgres
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: user
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: bw-trading-db
+        ports:
+            - "5432:5432"
+
+volumes:
+    postgres_data:
