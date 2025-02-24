@@ -38,8 +38,9 @@ npm run dev
 npm run dev
 ```
 
-## Features
+## Migrations
 
--
-
-## How to build your backend in top of this project
+npx typeorm-ts-node-commonjs migration:create src/migrations/migration-name
+npx typeorm-ts-node-commonjs migration:generate -d ./src/data-source.ts src/migrations/initial-setup
+npx typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts
+npx typeorm-ts-node-commonjs migration:revert

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import exampleRouter from "./example.router";
+import strategyRouter from "./strategy.router";
 
 const baseV1Router = Router();
 
-baseV1Router.use("/example", exampleRouter);
+baseV1Router.use("/strategy", strategyRouter);
 
 export default baseV1Router;

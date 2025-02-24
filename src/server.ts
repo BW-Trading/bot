@@ -1,9 +1,9 @@
 import helmet from "helmet";
 import express, { Express } from "express";
-import { rateLimiterConfig } from "./middlewares/config/rate-limiter";
-import { morganConfig } from "./middlewares/config/morgan";
-import { corsConfig } from "./middlewares/config/cors";
-import { bodyParserConfig } from "./middlewares/config/body-parser";
+import { rateLimiterConfig } from "./config/rate-limiter";
+import { morganConfig } from "./config/morgan";
+import { corsConfig } from "./config/cors";
+import { bodyParserConfig } from "./config/body-parser";
 import { appEnv } from "./utils/env/app-env";
 import { errorHandlerMiddleware } from "./middlewares/error-handler.middleware";
 import cookieParser from "cookie-parser";
@@ -35,12 +35,11 @@ export class Server {
 
     // Configure the app with middleware
     private config() {
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
         this.app.use(rateLimiterConfig);
         this.app.use(morganConfig);
         this.app.use(cookieParser());
-        this.app.use(express.json());
-        this.app.use(express.urlencoded({ extended: true }));
-        this.app.use(bodyParserConfig);
         this.app.use(helmet());
         this.app.use(corsConfig);
     }
