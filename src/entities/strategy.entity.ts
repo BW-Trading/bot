@@ -1,5 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from "typeorm";
 import { StrategiesEnum } from "../strategies/strategies";
+import { StrategyExecution } from "./strategy-execution.entity";
 
 @Entity()
 export class Strategy {
@@ -23,4 +30,8 @@ export class Strategy {
 
     @Column({ default: true })
     isActive!: boolean;
+
+    @OneToMany(() => StrategyExecution, (execution) => execution.strategy)
+    @JoinColumn()
+    executions!: StrategyExecution[];
 }

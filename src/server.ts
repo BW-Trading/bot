@@ -9,6 +9,7 @@ import { errorHandlerMiddleware } from "./middlewares/error-handler.middleware";
 import cookieParser from "cookie-parser";
 import baseRouter from "./routers/baseV1.router";
 import DatabaseManager from "./services/database-manager.service";
+import { StrategyManagerService } from "./services/strategy-manager.service";
 
 /**
  * The server class is a singleton class that creates an instance of the express app.
@@ -30,7 +31,11 @@ export class Server {
         this.config();
         this.routes();
         this.errorHandlers();
-        DatabaseManager.getInstance().connectAppDataSource();
+        DatabaseManager.getInstance()
+            .connectAppDataSource()
+            .then(async () => {
+                await StrategyManagerService.getInstance().loadAllStrategies();
+            });
     }
 
     // Configure the app with middleware

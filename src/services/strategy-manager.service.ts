@@ -1,11 +1,15 @@
 import { StrategyExecutionStatusEnum } from "../entities/enums/strategy-execution-status.enum";
-import { ITradingStrategy } from "../entities/interfaces/trading-strategy.interface";
+import { ITradingStrategy } from "../strategies/trading-strategy.interface";
 import { MarketAction } from "../entities/market-action.entity";
 import { StrategyExecution } from "../entities/strategy-execution.entity";
 import { NotFoundError } from "../errors/not-found-error";
 import { logger } from "../loggers/logger";
 import { StrategiesEnum } from "../strategies/strategies";
 import { strategyService } from "./strategy.service";
+import { Strategy } from "../entities/strategy.entity";
+import { strategyExecutionService } from "./strategy-execution.service";
+import { TestStrategy } from "../strategies/test-strategy";
+import { marketActionService } from "./market-action.service";
 
 interface StrategyInstance {
     instance: ITradingStrategy;
@@ -25,47 +29,57 @@ export class StrategyManagerService {
 
     private strategies: Map<number, StrategyInstance> = new Map();
 
-    async loadStrategies() {
+    async loadAllStrategies() {
         const strategies = await strategyService.getStrategies();
 
-        strategies.forEach((strategy) => {
-            this.startStrategy(
-                this.getStrategyClass(strategy.strategy),
-                strategy.config,
-                strategy.interval
-            );
+        strategies.forEach(async (strategy) => {
+            await this.startStrategy(strategy);
         });
 
         logger.info(`${strategies.length} active strategies loaded`);
     }
 
-    startStrategy(
-        strategyClass: new (...args: any[]) => ITradingStrategy,
-        config: any,
-        interval: number
-    ) {
-        const strategy = new strategyClass(config);
+    async startStrategy(strategy: Strategy) {
+        const strategyClass = this.getStrategyClass(strategy.strategy);
+        const config = strategy.config;
+        const interval = strategy.interval;
+        const strategyInstance = new strategyClass(config);
 
         const intervalId = setInterval(async () => {
-            const execution = new StrategyExecution();
-            execution.status = StrategyExecutionStatusEnum.EXECUTING;
+            let currentExecution;
             try {
-                const result = await strategy.run();
+                currentExecution = await strategyExecutionService.create(
+                    strategy
+                );
+            } catch (error) {
+                logger.error(
+                    `Error creating execution for strategy ${strategy.id}`
+                );
+                return;
+            }
 
-                const resultingMarketAction = new MarketAction();
-                resultingMarketAction.action = result;
-                execution.status = StrategyExecutionStatusEnum.COMPLETED;
-                execution.resultingMarketAction = resultingMarketAction;
+            try {
+                const execution = await strategyExecutionService.execute(
+                    currentExecution
+                );
+
+                const resultingMarketAction = await strategyInstance.run();
+
+                const marketAction = await marketActionService.create(
+                    resultingMarketAction
+                );
+
+                await strategyExecutionService.complete(
+                    execution,
+                    marketAction
+                );
             } catch (error: any) {
-                execution.status = StrategyExecutionStatusEnum.FAILED;
-                execution.error = error.message;
-                execution.failedAt = new Date();
-                console.error(`[${strategy.name}] Error:`, error);
+                await strategyExecutionService.fail(currentExecution, error);
             }
         }, interval);
 
         this.strategies.set(intervalId as unknown as number, {
-            instance: strategy,
+            instance: strategyInstance,
             intervalId,
         });
         return intervalId;
@@ -98,7 +112,8 @@ export class StrategyManagerService {
         strategy: StrategiesEnum
     ): new (...args: any[]) => ITradingStrategy {
         switch (strategy) {
-            case StrategiesEnum.RSI:
+            case StrategiesEnum.TEST:
+                return TestStrategy;
             default:
                 throw new NotFoundError(
                     "Strategy",
