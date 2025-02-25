@@ -1,14 +1,9 @@
-import { StrategyExecutionStatusEnum } from "../entities/enums/strategy-execution-status.enum";
 import { ITradingStrategy } from "../strategies/trading-strategy.interface";
-import { MarketAction } from "../entities/market-action.entity";
-import { StrategyExecution } from "../entities/strategy-execution.entity";
 import { NotFoundError } from "../errors/not-found-error";
 import { logger } from "../loggers/logger";
-import { StrategiesEnum } from "../strategies/strategies";
 import { strategyService } from "./strategy.service";
 import { Strategy } from "../entities/strategy.entity";
 import { strategyExecutionService } from "./strategy-execution.service";
-import { TestStrategy } from "../strategies/test-strategy";
 import { marketActionService } from "./market-action.service";
 
 interface StrategyInstance {
@@ -40,7 +35,9 @@ export class StrategyManagerService {
     }
 
     async startStrategy(strategy: Strategy) {
-        const strategyClass = this.getStrategyClass(strategy.strategy);
+        const strategyClass = strategyService.getStrategyClass(
+            strategy.strategy
+        );
         const config = strategy.config;
         const interval = strategy.interval;
         const strategyInstance = new strategyClass(config);
@@ -106,20 +103,5 @@ export class StrategyManagerService {
 
     getStrategies(): ITradingStrategy[] {
         return Array.from(this.strategies.values()).map((s) => s.instance);
-    }
-
-    getStrategyClass(
-        strategy: StrategiesEnum
-    ): new (...args: any[]) => ITradingStrategy {
-        switch (strategy) {
-            case StrategiesEnum.TEST:
-                return TestStrategy;
-            default:
-                throw new NotFoundError(
-                    "Strategy",
-                    "Strategy not found",
-                    "name"
-                );
-        }
     }
 }

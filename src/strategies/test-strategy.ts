@@ -1,5 +1,4 @@
 import { MarketActionEnum } from "../entities/enums/market-action.enum";
-import { MarketAction } from "../entities/market-action.entity";
 import { StrategiesEnum } from "./strategies";
 import { TradingStrategy } from "./trading-strategy";
 

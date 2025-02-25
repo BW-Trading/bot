@@ -1,11 +1,33 @@
 import { Strategy } from "../entities/strategy.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
+import { NotFoundError } from "../errors/not-found-error";
 import { StrategiesEnum } from "../strategies/strategies";
+import { TestStrategy } from "../strategies/test-strategy";
+import { ITradingStrategy } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";
 
 class StrategyService {
     private strategyRepository =
         DatabaseManager.getInstance().appDataSource.getRepository(Strategy);
+
+    getRunnableStrategies() {
+        return Object.values(StrategiesEnum);
+    }
+
+    getStrategyClass(
+        strategy: StrategiesEnum
+    ): new (...args: any[]) => ITradingStrategy {
+        switch (strategy) {
+            case StrategiesEnum.TEST:
+                return TestStrategy;
+            default:
+                throw new NotFoundError(
+                    "Strategy",
+                    "Strategy not found",
+                    "name"
+                );
+        }
+    }
 
     async createStrategy(
         name: string,

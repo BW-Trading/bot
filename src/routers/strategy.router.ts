@@ -6,6 +6,7 @@ import { ValidationType } from "../dto/validation-type";
 
 const strategyRouter = Router();
 
+strategyRouter.get("/list-runnable", StrategyController.getRunnableStrategies);
 strategyRouter.get("/created", StrategyController.getStrategies);
 strategyRouter.post(
     "/",

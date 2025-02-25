@@ -7,6 +7,26 @@ import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { plainToInstance } from "class-transformer";
 
 export class StrategyController {
+    static getRunnableStrategies(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const strategies = strategyService.getRunnableStrategies();
+            sendResponse(
+                res,
+                new ResponseOkDto(
+                    "Runnable strategies retrieved",
+                    200,
+                    strategies
+                )
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
     static async getStrategies(
         req: Request,
         res: Response,
