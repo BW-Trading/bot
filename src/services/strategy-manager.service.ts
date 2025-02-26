@@ -71,13 +71,13 @@ export class StrategyManagerService {
 
                 const resultingMarketActions = await strategyInstance.run();
 
-                const marketAction = await marketActionService.save(
+                const marketActions = await marketActionService.save(
                     resultingMarketActions
                 );
 
                 await strategyExecutionService.complete(
                     execution,
-                    marketAction
+                    marketActions
                 );
             } catch (error: any) {
                 await strategyExecutionService.fail(currentExecution, error);
