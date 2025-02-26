@@ -107,4 +107,17 @@ export class StrategyController {
             next(error);
         }
     }
+
+    static async getOrders(req: Request, res: Response, next: NextFunction) {
+        try {
+            const id = parseInt(req.params.id);
+            const orders = await strategyService.getOrdersForStrategy(id);
+            sendResponse(
+                res,
+                new ResponseOkDto("Orders retrieved", 200, orders)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
 }

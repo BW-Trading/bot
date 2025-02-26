@@ -1,4 +1,4 @@
-import { MarketActionEnum } from "../entities/enums/market-action.enum";
+import { MarketAction } from "../entities/market-action.entity";
 import { StrategiesEnum } from "./strategies";
 import { ITradingStrategy } from "./trading-strategy.interface";
 
@@ -20,5 +20,5 @@ export abstract class TradingStrategy implements ITradingStrategy {
         this.interval = interval;
     }
 
-    abstract run(): Promise<MarketActionEnum>;
+    abstract run(): Promise<MarketAction[]>;
 }

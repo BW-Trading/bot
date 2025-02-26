@@ -72,6 +72,23 @@ class StrategyService {
             where: { isActive: isActive },
         });
     }
+
+    async getOrdersForStrategy(strategyId: number) {
+        const orders = await this.strategyRepository.findOne({
+            where: { id: strategyId },
+            relations: {
+                executions: {
+                    resultingMarketActions: true,
+                },
+            },
+        });
+
+        if (!orders) {
+            throw new NotFoundError("Strategy", "Strategy not found", "id");
+        }
+
+        return orders.executions.flatMap((exec) => exec.resultingMarketActions);
+    }
 }
 
 export const strategyService = new StrategyService();

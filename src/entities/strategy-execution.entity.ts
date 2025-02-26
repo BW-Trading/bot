@@ -2,9 +2,9 @@ import {
     Column,
     Entity,
     JoinColumn,
-    JoinTable,
     ManyToOne,
-    OneToOne,
+    OneToMany,
+
     PrimaryGeneratedColumn,
 } from "typeorm";
 import { MarketAction } from "./market-action.entity";
@@ -19,9 +19,12 @@ export class StrategyExecution {
     @Column({ type: "enum", enum: StrategyExecutionStatusEnum })
     status!: StrategyExecutionStatusEnum;
 
-    @OneToOne(() => MarketAction, { eager: true, nullable: true })
+    @OneToMany(
+        () => MarketAction,
+        (marketAction) => marketAction.strategyExecution
+    )
     @JoinColumn()
-    resultingMarketAction?: MarketAction;
+    resultingMarketActions?: MarketAction[];
 
     @Column({ nullable: true })
     error?: string;

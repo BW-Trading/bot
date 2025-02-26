@@ -24,10 +24,10 @@ class StrategyExecutionService {
 
     complete(
         execution: StrategyExecution,
-        resultingMarketAction: MarketAction
+        resultingMarketActions: MarketAction[]
     ) {
         execution.status = StrategyExecutionStatusEnum.COMPLETED;
-        execution.resultingMarketAction = resultingMarketAction;
+        execution.resultingMarketActions = resultingMarketActions;
         return this.strategyExecutionRepository.save(execution);
     }
 

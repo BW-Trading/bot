@@ -61,10 +61,10 @@ export class StrategyManagerService {
                     currentExecution
                 );
 
-                const resultingMarketAction = await strategyInstance.run();
+                const resultingMarketActions = await strategyInstance.run();
 
-                const marketAction = await marketActionService.create(
-                    resultingMarketAction
+                const marketAction = await marketActionService.save(
+                    resultingMarketActions
                 );
 
                 await strategyExecutionService.complete(

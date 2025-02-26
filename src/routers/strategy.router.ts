@@ -4,6 +4,7 @@ import { validateDto } from "../dto/validate-dto";
 import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { ValidationType } from "../dto/validation-type";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
+import { GetStrategyOrdersDto } from "../dto/requests/strategy/get-orders.dto";
 
 const strategyRouter = Router();
 
@@ -21,5 +22,8 @@ strategyRouter.post(
 );
 
 strategyRouter.get("/running", StrategyController.getRunningStrategies);
+strategyRouter.get("/orders/:id",
+    validateDto(GetStrategyOrdersDto, ValidationType.PARAMS),
+    StrategyController.getOrders);
 
 export default strategyRouter;
