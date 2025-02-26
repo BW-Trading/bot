@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "bw-trading",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
