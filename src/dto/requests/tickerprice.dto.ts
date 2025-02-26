@@ -7,5 +7,6 @@ export class TickerPriceDto extends DTO {
     symbol?: string;
 
     @IsOptional()
+    @IsString({ each: true })
     symbols?: string[];
 }
