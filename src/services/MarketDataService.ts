@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export class RecupDataService {
+export class MarketDataService {
     private baseUrl = "https://api.binance.com/api/v3";
 
     /**
@@ -27,7 +27,7 @@ export class RecupDataService {
      * Peux pas mettre les deux en même temps
      * - type: type de filtre , enum , optionnel , valeurs possibles: "FULL" ou "MINI", default = "FULL"
      */
-    async get24hPriceChange(symbol: string, type: string = "FULL") {
+    async get24hPriceChange(symbol: string, type?: string) {
         try {
             const response = await axios.get(`${this.baseUrl}/ticker/24hr`, {
                 params: { symbol, type },
@@ -47,7 +47,7 @@ export class RecupDataService {
      * - symbols: tableau de paires de trading , string , optionnel
      * Peux pas mettre les deux en même temps
      */
-    async getTickerPrice(symbol: string, symbols: string[]) {
+    async getTickerPrice(symbol: string, symbols?: string[]) {
         try {
             const response = await axios.get(`${this.baseUrl}/ticker/price`, {
                 params: { symbol, symbols },
@@ -65,7 +65,7 @@ export class RecupDataService {
      * - symbol: paire de trading , string , obligatoire
      * - limit: nombre de résultats à retourner , int , optionnel, default = 500 , max = 1000
      */
-    async getRecentTrades(symbol: string, limit: number = 5) {
+    async getRecentTrades(symbol: string, limit?: number) {
         try {
             const response = await axios.get(`${this.baseUrl}/trades`, {
                 params: { symbol, limit },
@@ -86,7 +86,7 @@ export class RecupDataService {
      * - limit: nombre de résultats à retourner , int , optionnel, default = 500 , max = 1000
      * - fromId: id du trade à partir duquel on veut récupérer les trades , int , optionnel , default récupère les trades les plus récents
      */
-    async getOldTrades(symbol: string, limit: number = 5, fromId: number) {
+    async getOldTrades(symbol: string, limit?: number, fromId?: number) {
         try {
             const response = await axios.get(
                 `${this.baseUrl}/historicalTrades`,
@@ -113,10 +113,10 @@ export class RecupDataService {
      */
     async getAggregatedTrades(
         symbol: string,
-        fromId: number,
-        startTime: number,
-        endTime: number,
-        limit: number = 500
+        fromId?: number,
+        startTime?: number,
+        endTime?: number,
+        limit?: number
     ) {
         try {
             const response = await axios.get(`${this.baseUrl}/aggTrades`, {
@@ -136,7 +136,7 @@ export class RecupDataService {
      * - symbol: paire de trading , string , obligatoire
      * - limit: nombre de résultats à retourner , int , optionnel, default = 100 , max = 5000
      */
-    async getOrderBook(symbol: string, limit: number = 100) {
+    async getOrderBook(symbol: string, limit?: number) {
         try {
             const response = await axios.get(`${this.baseUrl}/depth`, {
                 params: { symbol, limit },
@@ -160,10 +160,10 @@ export class RecupDataService {
     async getMarketHistory(
         symbol: string,
         interval: string,
-        limit: number = 500,
-        startTime: number,
-        endTime: number,
-        timeZone: string = "UTC"
+        limit?: number,
+        startTime?: number,
+        endTime?: number,
+        timeZone?: string
     ) {
         try {
             const response = await axios.get(`${this.baseUrl}/klines`, {
@@ -210,10 +210,10 @@ export class RecupDataService {
     async getMarketHistoryForChart(
         symbol: string,
         interval: string,
-        limit: number = 500,
-        startTime: number,
-        endTime: number,
-        timeZone: string = "UTC"
+        limit?: number,
+        startTime?: number,
+        endTime?: number,
+        timeZone?: string
     ) {
         try {
             const response = await axios.get(`${this.baseUrl}/klines`, {
@@ -258,9 +258,9 @@ export class RecupDataService {
      */
     async getDailyPriceChangeStats(
         symbol: string,
-        symbols: string[],
-        type: string = "FULL",
-        timeZone: string = "UTC"
+        symbols?: string[],
+        type?: string,
+        timeZone?: string
     ) {
         try {
             const response = await axios.get(`${this.baseUrl}/tradingDay`, {
@@ -281,7 +281,7 @@ export class RecupDataService {
      * - symbols: tableau de paires de trading , string , optionnel
      * Peux pas mettre les deux en même temps
      **/
-    async getBestOrderBook(symbol: string, symbols: string[]) {
+    async getBestOrderBook(symbol: string, symbols?: string[]) {
         try {
             const response = await axios.get(
                 `${this.baseUrl}/ticker/bookTicker`,
