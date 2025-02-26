@@ -1,7 +1,7 @@
 meta {
   name: create strategy
   type: http
-  seq: 3
+  seq: 2
 }
 
 post {
@@ -14,8 +14,9 @@ body:json {
   {
     "name": "First strategy test",
     "description": "Just a test",
-    "strategyEnum": "RSI",
+    "strategyEnum": "TEST",
     "config" : "{}",
-    "interval": 5000
+    "interval": 5000,
+    "asset": "BTCUSD"
   }
 }
