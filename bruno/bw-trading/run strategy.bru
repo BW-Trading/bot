@@ -1,0 +1,21 @@
+meta {
+  name: run strategy
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/strategy/run/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "First strategy test",
+    "description": "Just a test",
+    "strategyEnum": "RSI",
+    "config" : "{}",
+    "interval": 5000
+  }
+}

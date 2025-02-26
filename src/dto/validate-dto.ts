@@ -14,9 +14,11 @@ export function validateDto(
         const errors = await validate(dtoInstance);
 
         if (errors.length > 0) {
-            const errorsList = errors.map((error) => {
-                error.property, error.constraints;
-            });
+            const errorsList = errors.map((error) => ({
+                property: error.property,
+                constraints: error.constraints,
+            }));
+
             next(new InvalidInputError(source, errorsList));
         }
 

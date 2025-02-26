@@ -1,10 +1,10 @@
 import { Router } from "express";
-import exampleRouter from "./example.router";
+import strategyRouter from "./strategy.router";
 import MarketDataRouter from "./marketData.router";
 
 const baseV1Router = Router();
 
-baseV1Router.use("/example", exampleRouter);
+baseV1Router.use("/strategy", strategyRouter);
 
 baseV1Router.use("/recup-data", MarketDataRouter);
 

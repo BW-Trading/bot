@@ -1,7 +1,6 @@
 import { DataSource } from "typeorm";
-import { join } from "path";
 import { logger } from "../loggers/logger";
-import { appEnv } from "../utils/env/app-env";
+import { appDataSource } from "../data-source";
 
 class DatabaseManager {
     private static instance: DatabaseManager;
@@ -17,18 +16,7 @@ class DatabaseManager {
     }
 
     private constructor() {
-        this.appDataSource = new DataSource({
-            type: appEnv.database.type as any,
-            host: appEnv.database.host,
-            port: parseInt(appEnv.database.port),
-            username: appEnv.database.user,
-            password: appEnv.database.password,
-            database: appEnv.database.name,
-            synchronize: false,
-            logging: false,
-            entities: [join(__dirname, "entities", "*.entity.{ts,js}")],
-            migrations: [join(__dirname, "migrations", "*.{ts,js}")],
-        });
+        this.appDataSource = appDataSource;
     }
 
     // Main database connection

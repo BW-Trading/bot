@@ -35,3 +35,12 @@ strategyConfig: StrategyConfig
 
 -   Les stratégies
 -   Pour chaque stratégies, l'historique des actions
+
+## Historique des actions
+
+-   Action
+-   Timestamp
+-   Prix
+
+1- Nouvelle execution de la stratégie
+2- 
