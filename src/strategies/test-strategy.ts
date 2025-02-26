@@ -3,8 +3,8 @@ import { StrategiesEnum } from "./strategies";
 import { TradingStrategy } from "./trading-strategy";
 
 export class TestStrategy extends TradingStrategy {
-    constructor(name: string) {
-        super(name, StrategiesEnum.TEST, {}, 1000);
+    constructor(name: string, config: any, interval: number) {
+        super(name, StrategiesEnum.TEST, config, interval);
     }
 
     run(): Promise<MarketActionEnum> {

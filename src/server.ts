@@ -31,11 +31,7 @@ export class Server {
         this.config();
         this.routes();
         this.errorHandlers();
-        DatabaseManager.getInstance()
-            .connectAppDataSource()
-            .then(async () => {
-                await StrategyManagerService.getInstance().loadAllStrategies();
-            });
+        DatabaseManager.getInstance().connectAppDataSource();
     }
 
     // Configure the app with middleware

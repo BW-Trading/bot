@@ -3,15 +3,23 @@ import { StrategyController } from "../controllers/strategy.controller";
 import { validateDto } from "../dto/validate-dto";
 import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { ValidationType } from "../dto/validation-type";
+import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
 
 const strategyRouter = Router();
 
-strategyRouter.get("/list-runnable", StrategyController.getRunnableStrategies);
+strategyRouter.get("/runnable", StrategyController.getRunnableStrategies);
 strategyRouter.get("/created", StrategyController.getStrategies);
 strategyRouter.post(
     "/",
     validateDto(CreateStrategyDto, ValidationType.BODY),
     StrategyController.createStrategy
 );
+strategyRouter.post(
+    "/run/:id",
+    validateDto(RunStrategyDto, ValidationType.PARAMS),
+    StrategyController.runStrategy
+);
+
+strategyRouter.get("/running", StrategyController.getRunningStrategies);
 
 export default strategyRouter;

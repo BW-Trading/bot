@@ -57,8 +57,14 @@ class StrategyService {
         return this.strategyRepository.findBy({ name });
     }
 
-    getStrategyById(id: number) {
-        return this.strategyRepository.findBy({ id });
+    async getStrategyById(id: number) {
+        const strategy = await this.strategyRepository.findOneBy({ id });
+
+        if (!strategy) {
+            throw new NotFoundError("Strategy", "Strategy not found", "id");
+        }
+
+        return strategy;
     }
 
     getStrategies(isActive: boolean = true) {

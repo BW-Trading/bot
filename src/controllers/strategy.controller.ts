@@ -5,6 +5,7 @@ import { strategyService } from "../services/strategy.service";
 import { Strategy } from "../entities/strategy.entity";
 import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { plainToInstance } from "class-transformer";
+import { StrategyManagerService } from "../services/strategy-manager.service";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -69,6 +70,38 @@ export class StrategyController {
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy created", 201, strategy)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async runStrategy(req: Request, res: Response, next: NextFunction) {
+        try {
+            const id = parseInt(req.params.id);
+            const strategy = await strategyService.getStrategyById(id);
+            StrategyManagerService.getInstance().startStrategy(strategy);
+            sendResponse(res, new ResponseOkDto("Strategy started", 200));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async getRunningStrategies(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const runningStrategies =
+                StrategyManagerService.getInstance().getRunningStrategies();
+            sendResponse(
+                res,
+                new ResponseOkDto(
+                    "Running strategies retrieved",
+                    200,
+                    runningStrategies
+                )
             );
         } catch (error) {
             next(error);

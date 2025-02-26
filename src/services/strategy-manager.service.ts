@@ -40,7 +40,8 @@ export class StrategyManagerService {
         );
         const config = strategy.config;
         const interval = strategy.interval;
-        const strategyInstance = new strategyClass(config);
+        const name = strategy.name;
+        const strategyInstance = new strategyClass(name, config, interval);
 
         const intervalId = setInterval(async () => {
             let currentExecution;
@@ -101,7 +102,7 @@ export class StrategyManagerService {
         this.strategies.clear();
     }
 
-    getStrategies(): ITradingStrategy[] {
+    getRunningStrategies(): ITradingStrategy[] {
         return Array.from(this.strategies.values()).map((s) => s.instance);
     }
 }
