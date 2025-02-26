@@ -1,4 +1,10 @@
-import { IsEnum, IsJSON, IsNumber, IsString } from "class-validator";
+import {
+    IsEnum,
+    IsJSON,
+    IsNumber,
+    IsOptional,
+    IsString,
+} from "class-validator";
 import { DTO } from "../../dto";
 import { StrategiesEnum } from "../../../strategies/strategies";
 
@@ -17,4 +23,11 @@ export class CreateStrategyDto extends DTO {
 
     @IsNumber()
     interval!: number;
+
+    @IsString()
+    asset!: string;
+
+    @IsOptional()
+    @IsNumber()
+    balance?: number;
 }

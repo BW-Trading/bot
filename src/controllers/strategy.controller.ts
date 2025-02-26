@@ -28,6 +28,19 @@ export class StrategyController {
         }
     }
 
+    static async getStrategy(req: Request, res: Response, next: NextFunction) {
+        try {
+            const id = parseInt(req.params.id);
+            const strategy = await strategyService.getStrategyByIdOrThrow(id);
+            sendResponse(
+                res,
+                new ResponseOkDto<Strategy>("Strategy retrieved", 200, strategy)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
     static async getStrategies(
         req: Request,
         res: Response,
@@ -62,9 +75,11 @@ export class StrategyController {
             const strategy = await strategyService.createStrategy(
                 dto.name,
                 dto.description,
+                dto.asset,
                 dto.strategyEnum,
                 dto.config,
-                dto.interval
+                dto.interval,
+                dto.balance
             );
 
             sendResponse(
@@ -79,7 +94,7 @@ export class StrategyController {
     static async runStrategy(req: Request, res: Response, next: NextFunction) {
         try {
             const id = parseInt(req.params.id);
-            const strategy = await strategyService.getStrategyById(id);
+            const strategy = await strategyService.getStrategyByIdOrThrow(id);
             StrategyManagerService.getInstance().startStrategy(strategy);
             sendResponse(res, new ResponseOkDto("Strategy started", 200));
         } catch (error) {

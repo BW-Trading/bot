@@ -1,3 +1,4 @@
+import { Portfolio } from "../entities/portfolio.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
@@ -5,6 +6,7 @@ import { StrategiesEnum } from "../strategies/strategies";
 import { TestStrategy } from "../strategies/test-strategy";
 import { ITradingStrategy } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";
+import { portfolioService } from "./portfolio.service";
 
 class StrategyService {
     private strategyRepository =
@@ -32,11 +34,14 @@ class StrategyService {
     async createStrategy(
         name: string,
         description: string,
+        asset: string,
         strategyEnum: StrategiesEnum,
         config: any,
-        interval: number
+        interval: number,
+        balance?: number
     ) {
         const existingStrategy = await this.getStrategyByName(name);
+
         if (existingStrategy) {
             throw new AlreadyExistsError(
                 "A strategy with this name already exists"
@@ -45,20 +50,29 @@ class StrategyService {
 
         const strategy = new Strategy();
         strategy.name = name;
+        strategy.asset = asset;
         strategy.description = description;
         strategy.strategy = strategyEnum;
         strategy.config = config;
         strategy.interval = interval;
+        const portfolio = await portfolioService.createPortfolio(
+            asset,
+            balance || 0
+        );
+        strategy.portfolio = portfolio;
 
         return this.strategyRepository.save(strategy);
     }
 
     getStrategyByName(name: string) {
-        return this.strategyRepository.findBy({ name });
+        return this.strategyRepository.findOneBy({ name });
     }
 
-    async getStrategyById(id: number) {
-        const strategy = await this.strategyRepository.findOneBy({ id });
+    async getStrategyByIdOrThrow(id: number) {
+        const strategy = await this.strategyRepository.findOne({
+            where: { id: id },
+            relations: ["portfolio"],
+        });
 
         if (!strategy) {
             throw new NotFoundError("Strategy", "Strategy not found", "id");
@@ -88,6 +102,12 @@ class StrategyService {
         }
 
         return orders.executions.flatMap((exec) => exec.resultingMarketActions);
+    }
+
+    async getPortfolioForStrategy(strategyId: number) {
+        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+
+        return strategy.portfolio;
     }
 }
 

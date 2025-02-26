@@ -38,10 +38,18 @@ export class StrategyManagerService {
         const strategyClass = strategyService.getStrategyClass(
             strategy.strategy
         );
+
+        const strategyId = strategy.id;
         const config = strategy.config;
         const interval = strategy.interval;
         const name = strategy.name;
-        const strategyInstance = new strategyClass(name, config, interval);
+
+        const strategyInstance = new strategyClass(
+            strategyId,
+            name,
+            config,
+            interval
+        );
 
         const intervalId = setInterval(async () => {
             let currentExecution;

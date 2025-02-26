@@ -21,6 +21,7 @@ export class MarketAction {
         this.size = size;
         this.action = action;
         this.price = price;
+        this.exchangeOrderId = exchangeOrderId || undefined;
     }
 
     @PrimaryGeneratedColumn()

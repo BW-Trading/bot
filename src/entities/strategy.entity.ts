@@ -3,10 +3,12 @@ import {
     Entity,
     JoinColumn,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
 import { StrategiesEnum } from "../strategies/strategies";
 import { StrategyExecution } from "./strategy-execution.entity";
+import { Portfolio } from "./portfolio.entity";
 
 @Entity()
 export class Strategy {
@@ -28,10 +30,17 @@ export class Strategy {
     @Column()
     interval!: number;
 
+    @Column()
+    asset!: string;
+
     @Column({ default: true })
     isActive!: boolean;
 
     @OneToMany(() => StrategyExecution, (execution) => execution.strategy)
     @JoinColumn()
     executions!: StrategyExecution[];
+
+    @OneToOne(() => Portfolio)
+    @JoinColumn()
+    portfolio!: Portfolio;
 }
