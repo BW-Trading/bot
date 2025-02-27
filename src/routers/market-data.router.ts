@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { MarketDataController } from "../controllers/marketData.controller";
+import { MarketDataController } from "../controllers/market-data.controller";
 import { validateDto } from "../dto/validate-dto";
-import { TickerPriceDto } from "../dto/requests/tickerprice.dto";
-import { MarketHistoryDto } from "../dto/requests/markethistory";
 import { ValidationType } from "../dto/validation-type";
+import { OrderBookDto } from "../dto/requests/market-data/order-book.dto";
+import { TickerPriceDto } from "../dto/requests/market-data/ticker-price.dto";
+import { HistoryChartDto } from "../dto/requests/market-data/history-chart.dto";
+import { HistoryDto } from "../dto/requests/market-data/history.dto";
 
 const marketDataRouter = Router();
 
@@ -14,17 +16,17 @@ marketDataRouter.get(
 );
 marketDataRouter.get(
     "/order-book",
-    validateDto(TickerPriceDto, ValidationType.QUERY),
+    validateDto(OrderBookDto, ValidationType.QUERY),
     MarketDataController.getOrderBook
 );
 marketDataRouter.get(
     "/history",
-    validateDto(MarketHistoryDto, ValidationType.BODY),
+    validateDto(HistoryDto, ValidationType.BODY),
     MarketDataController.getMarketHistory
 );
 marketDataRouter.get(
     "/history-chart",
-    validateDto(MarketHistoryDto, ValidationType.QUERY),
+    validateDto(HistoryChartDto, ValidationType.QUERY),
     MarketDataController.getMarketHistoryForChart
 );
 export default marketDataRouter;

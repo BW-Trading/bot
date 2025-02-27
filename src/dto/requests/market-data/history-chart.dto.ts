@@ -1,12 +1,17 @@
 import { IsNumberString, IsOptional, IsString } from "class-validator";
-import { DTO } from "../dto";
+import { DTO } from "../../dto";
 
-export class MarketHistoryDto extends DTO {
+export class HistoryChartDto extends DTO {
     @IsString()
     symbol!: string;
 
+    @IsOptional()
     @IsString()
-    interval!: string;
+    interval: string = "1d";
+
+    @IsOptional()
+    @IsNumberString()
+    limit?: number;
 
     @IsOptional()
     @IsNumberString()
@@ -15,10 +20,6 @@ export class MarketHistoryDto extends DTO {
     @IsOptional()
     @IsNumberString()
     endTime?: number;
-
-    @IsOptional()
-    @IsNumberString()
-    limit?: number;
 
     @IsOptional()
     @IsString()

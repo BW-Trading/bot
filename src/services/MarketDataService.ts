@@ -10,7 +10,7 @@ export class MarketDataService {
      */
     async getAveragePrice(symbol: string) {
         try {
-            const response = await axios.get(`${this.baseUrl}/avgPrice`, {
+            const response = await axios.get(`${this.baseUrl}/average-price`, {
                 params: { symbol },
             });
             return response.data;
