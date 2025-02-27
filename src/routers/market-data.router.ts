@@ -5,26 +5,26 @@ import { TickerPriceDto } from "../dto/requests/tickerprice.dto";
 import { MarketHistoryDto } from "../dto/requests/markethistory";
 import { ValidationType } from "../dto/validation-type";
 
-const RecupDataRouter = Router();
+const marketDataRouter = Router();
 
-RecupDataRouter.get(
+marketDataRouter.get(
     "/ticker-price",
     validateDto(TickerPriceDto, ValidationType.QUERY),
     MarketDataController.getTickerPrice
 );
-RecupDataRouter.get(
+marketDataRouter.get(
     "/order-book",
     validateDto(TickerPriceDto, ValidationType.QUERY),
     MarketDataController.getOrderBook
 );
-RecupDataRouter.get(
-    "/market-history",
-    validateDto(MarketHistoryDto, ValidationType.QUERY),
+marketDataRouter.get(
+    "/history",
+    validateDto(MarketHistoryDto, ValidationType.BODY),
     MarketDataController.getMarketHistory
 );
-RecupDataRouter.get(
-    "/market-history-chart",
+marketDataRouter.get(
+    "/history-chart",
     validateDto(MarketHistoryDto, ValidationType.QUERY),
     MarketDataController.getMarketHistoryForChart
 );
-export default RecupDataRouter;
+export default marketDataRouter;
