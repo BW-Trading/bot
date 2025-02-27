@@ -6,7 +6,7 @@ import { TickerPriceDto } from "../dto/requests/market-data/ticker-price.dto";
 import { OrderBookDto } from "../dto/requests/market-data/order-book.dto";
 import { HistoryDto } from "../dto/requests/market-data/history.dto";
 import { HistoryChartDto } from "../dto/requests/market-data/history-chart.dto";
-import { marketDataService } from "../services/MarketDataService";
+import { marketDataService } from "../services/market-data.service";
 
 export class MarketDataController {
     /**

@@ -1,18 +1,21 @@
 import axios from "axios";
 
 class MarketDataService {
-    private baseUrl = "https://api.binance.com/api/v3";
+    private binanceUrl = "https://api.binance.com/api/v3";
 
     /**
      * Récupérer le prix moyen pour un symbole
      * Paramètres:
-     * - symbol: paire de trading , string , obligatoire
+     * - symbol: paire de trading, string, obligatoire
      */
     async getAveragePrice(symbol: string) {
         try {
-            const response = await axios.get(`${this.baseUrl}/average-price`, {
-                params: { symbol },
-            });
+            const response = await axios.get(
+                `${this.binanceUrl}/average-price`,
+                {
+                    params: { symbol },
+                }
+            );
             return response.data;
         } catch (error) {
             throw new Error("Erreur lors de la récupération du prix moyen");
@@ -25,11 +28,11 @@ class MarketDataService {
      * - symbol: paire de trading , string , optionnel
      * - symbols: tableau de paires de trading , string , optionnel
      * Peux pas mettre les deux en même temps
-     * - type: type de filtre , enum , optionnel , valeurs possibles: "FULL" ou "MINI", default = "FULL"
+     * - type: type de filtre, enum, optionnel, valeurs possibles: "FULL" ou "MINI", default = "FULL"
      */
     async get24hPriceChange(symbol: string, type?: string) {
         try {
-            const response = await axios.get(`${this.baseUrl}/ticker/24hr`, {
+            const response = await axios.get(`${this.binanceUrl}/ticker/24hr`, {
                 params: { symbol, type },
             });
             return response.data;
@@ -49,9 +52,12 @@ class MarketDataService {
      */
     async getTickerPrice(symbol: string, symbols?: string[]) {
         try {
-            const response = await axios.get(`${this.baseUrl}/ticker/price`, {
-                params: { symbol, symbols },
-            });
+            const response = await axios.get(
+                `${this.binanceUrl}/ticker/price`,
+                {
+                    params: { symbol, symbols },
+                }
+            );
             return response.data;
         } catch (error) {
             throw new Error("Erreur lors de la récupération du prix actuel");
@@ -67,7 +73,7 @@ class MarketDataService {
      */
     async getRecentTrades(symbol: string, limit?: number) {
         try {
-            const response = await axios.get(`${this.baseUrl}/trades`, {
+            const response = await axios.get(`${this.binanceUrl}/trades`, {
                 params: { symbol, limit },
             });
             return response.data;
@@ -89,7 +95,7 @@ class MarketDataService {
     async getOldTrades(symbol: string, limit?: number, fromId?: number) {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/historicalTrades`,
+                `${this.binanceUrl}/historicalTrades`,
                 {
                     params: { symbol, limit, fromId },
                 }
@@ -119,7 +125,7 @@ class MarketDataService {
         limit?: number
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/aggTrades`, {
+            const response = await axios.get(`${this.binanceUrl}/aggTrades`, {
                 params: { symbol, fromId, startTime, endTime, limit },
             });
             return response.data;
@@ -138,7 +144,7 @@ class MarketDataService {
      */
     async getOrderBook(symbol: string, limit?: number) {
         try {
-            const response = await axios.get(`${this.baseUrl}/depth`, {
+            const response = await axios.get(`${this.binanceUrl}/depth`, {
                 params: { symbol, limit },
             });
             return response.data;
@@ -166,7 +172,7 @@ class MarketDataService {
         timeZone?: string
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/klines`, {
+            const response = await axios.get(`${this.binanceUrl}/klines`, {
                 params: {
                     symbol,
                     interval,
@@ -216,7 +222,7 @@ class MarketDataService {
         timeZone?: string
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/klines`, {
+            const response = await axios.get(`${this.binanceUrl}/klines`, {
                 params: {
                     symbol,
                     interval,
@@ -263,7 +269,7 @@ class MarketDataService {
         timeZone?: string
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/tradingDay`, {
+            const response = await axios.get(`${this.binanceUrl}/tradingDay`, {
                 params: { symbol, symbols, type, timeZone },
             });
             return response.data;
@@ -284,7 +290,7 @@ class MarketDataService {
     async getBestOrderBook(symbol: string, symbols?: string[]) {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/ticker/bookTicker`,
+                `${this.binanceUrl}/ticker/bookTicker`,
                 {
                     params: { symbol, symbols },
                 }
