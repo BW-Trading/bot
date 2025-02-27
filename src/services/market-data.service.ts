@@ -11,12 +11,9 @@ class MarketDataService {
      */
     async getAveragePrice(symbol: string) {
         try {
-            const response = await axios.get(
-                `${this.binanceUrl}/average-price`,
-                {
-                    params: { symbol },
-                }
-            );
+            const response = await axios.get(`${this.binanceUrl}/avgPrice`, {
+                params: { symbol },
+            });
             return response.data;
         } catch (error: any) {
             throw new BinanceFetchingError(
