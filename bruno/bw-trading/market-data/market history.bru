@@ -1,0 +1,18 @@
+meta {
+  name: market history
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host}}/market-data/market-history
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "symbol": "BTCUSD",
+    "interval": "1m"
+  }
+}
