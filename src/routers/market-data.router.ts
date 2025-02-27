@@ -21,7 +21,7 @@ marketDataRouter.get(
 );
 marketDataRouter.get(
     "/history",
-    validateDto(HistoryDto, ValidationType.BODY),
+    validateDto(HistoryDto, ValidationType.QUERY),
     MarketDataController.getMarketHistory
 );
 marketDataRouter.get(

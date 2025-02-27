@@ -1,4 +1,5 @@
 import axios from "axios";
+import { BinanceFetchingError } from "../errors/binance-fetching.error";
 
 class MarketDataService {
     private binanceUrl = "https://api.binance.com/api/v3";
@@ -17,8 +18,12 @@ class MarketDataService {
                 }
             );
             return response.data;
-        } catch (error) {
-            throw new Error("Erreur lors de la récupération du prix moyen");
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "average-price",
+                error.response.data.msg,
+                error.response.data.code
+            );
         }
     }
 
@@ -36,9 +41,11 @@ class MarketDataService {
                 params: { symbol, type },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération de l'évolution des prix sur 24h"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "ticker/24hr",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -59,8 +66,12 @@ class MarketDataService {
                 }
             );
             return response.data;
-        } catch (error) {
-            throw new Error("Erreur lors de la récupération du prix actuel");
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "ticker/price",
+                error.response.data.msg,
+                error.response.data.code
+            );
         }
     }
 
@@ -77,9 +88,11 @@ class MarketDataService {
                 params: { symbol, limit },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des trades récents"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "trades",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -101,9 +114,11 @@ class MarketDataService {
                 }
             );
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des trades anciens"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "historicalTrades",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -129,9 +144,11 @@ class MarketDataService {
                 params: { symbol, fromId, startTime, endTime, limit },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des trades agrégés"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "aggTrades",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -148,8 +165,12 @@ class MarketDataService {
                 params: { symbol, limit },
             });
             return response.data;
-        } catch (error) {
-            throw new Error("Erreur lors de la récupération de l'order book");
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "depth",
+                error.response.data.msg,
+                error.response.data.code
+            );
         }
     }
 
@@ -196,9 +217,11 @@ class MarketDataService {
                 takerBuyQuoteAssetVolume: candle[10],
                 ignore: candle[11],
             }));
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération de l'historique des prix du marché"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "klines",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -246,9 +269,11 @@ class MarketDataService {
                 takerBuyQuoteAssetVolume: candle[10],
                 ignore: candle[11],
             }));
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération de l'historique des prix du marché"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "klines",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -273,9 +298,11 @@ class MarketDataService {
                 params: { symbol, symbols, type, timeZone },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des statistiques des changements de prix pour un jour"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "tradingDay",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -296,9 +323,11 @@ class MarketDataService {
                 }
             );
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération du meilleur prix/quantité sur le carnet d'ordres"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "ticker/bookTicker",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
