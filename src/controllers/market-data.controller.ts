@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { MarketDataService } from "../services/MarketDataService";
 import { sendResponse } from "../utils/send-response";
 import { ResponseOkDto } from "../dto/responses/response-ok.dto";
 import { plainToInstance } from "class-transformer";
@@ -7,8 +6,7 @@ import { TickerPriceDto } from "../dto/requests/market-data/ticker-price.dto";
 import { OrderBookDto } from "../dto/requests/market-data/order-book.dto";
 import { HistoryDto } from "../dto/requests/market-data/history.dto";
 import { HistoryChartDto } from "../dto/requests/market-data/history-chart.dto";
-
-const marketDataService = new MarketDataService();
+import { marketDataService } from "../services/MarketDataService";
 
 export class MarketDataController {
     /**

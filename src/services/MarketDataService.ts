@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export class MarketDataService {
+class MarketDataService {
     private baseUrl = "https://api.binance.com/api/v3";
 
     /**
@@ -297,3 +297,5 @@ export class MarketDataService {
         }
     }
 }
+
+export const marketDataService = new MarketDataService();
