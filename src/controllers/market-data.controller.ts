@@ -1,9 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { MarketDataService } from "../services/MarketDataService";
 import { sendResponse } from "../utils/send-response";
 import { ResponseOkDto } from "../dto/responses/response-ok.dto";
-
-const marketDataService = new MarketDataService();
+import { plainToInstance } from "class-transformer";
+import { TickerPriceDto } from "../dto/requests/market-data/ticker-price.dto";
+import { OrderBookDto } from "../dto/requests/market-data/order-book.dto";
+import { HistoryDto } from "../dto/requests/market-data/history.dto";
+import { HistoryChartDto } from "../dto/requests/market-data/history-chart.dto";
+import { marketDataService } from "../services/market-data.service";
 
 export class MarketDataController {
     /**
@@ -15,12 +18,12 @@ export class MarketDataController {
         next: NextFunction
     ) {
         try {
-            const symbol = req.query.symbol as string;
-            const symbols = req.query.symbols as string[];
+            const dto = plainToInstance(TickerPriceDto, req.query);
             const tickerPrice = await marketDataService.getTickerPrice(
-                symbol,
-                symbols
+                dto.symbol,
+                dto.symbols
             );
+
             sendResponse(
                 res,
                 new ResponseOkDto(
@@ -39,14 +42,13 @@ export class MarketDataController {
      */
     static async getOrderBook(req: Request, res: Response, next: NextFunction) {
         try {
-            const symbol = req.query.symbol as string;
-            const limit = req.query.limit
-                ? parseInt(req.query.limit as string)
-                : undefined;
+            const dto = plainToInstance(OrderBookDto, req.query);
+
             const orderBook = await marketDataService.getOrderBook(
-                symbol,
-                limit
+                dto.symbol,
+                dto.limit
             );
+
             sendResponse(
                 res,
                 new ResponseOkDto(
@@ -69,29 +71,16 @@ export class MarketDataController {
         next: NextFunction
     ) {
         try {
-            const symbol = req.query.symbol as string;
-            const interval = (req.query.interval as string) || "1d";
-            const limit = req.query.limit
-                ? parseInt(req.query.limit as string)
-                : undefined;
-            const startTime = req.query.startTime
-                ? parseInt(req.query.startTime as string)
-                : undefined;
-            const endTime = req.query.endTime
-                ? parseInt(req.query.endTime as string)
-                : undefined;
-            const timeZone =
-                typeof req.query.timeZone === "string"
-                    ? req.query.timeZone
-                    : undefined;
+            const dto = plainToInstance(HistoryDto, req.query);
             const marketHistory = await marketDataService.getMarketHistory(
-                symbol,
-                interval,
-                limit,
-                startTime,
-                endTime,
-                timeZone
+                dto.symbol,
+                dto.interval,
+                dto.limit,
+                dto.startTime,
+                dto.endTime,
+                dto.timeZone
             );
+
             sendResponse(
                 res,
                 new ResponseOkDto(
@@ -114,29 +103,16 @@ export class MarketDataController {
         next: NextFunction
     ) {
         try {
-            const symbol = req.query.symbol as string;
-            const interval = (req.query.interval as string) || "1d";
-            const limit = req.query.limit
-                ? parseInt(req.query.limit as string)
-                : undefined;
-            const startTime = req.query.startTime
-                ? parseInt(req.query.startTime as string)
-                : undefined;
-            const endTime = req.query.endTime
-                ? parseInt(req.query.endTime as string)
-                : undefined;
-            const timeZone =
-                typeof req.query.timeZone === "string"
-                    ? req.query.timeZone
-                    : undefined;
+            const dto = plainToInstance(HistoryChartDto, req.query);
             const marketHistory = await marketDataService.getMarketHistory(
-                symbol,
-                interval,
-                limit,
-                startTime,
-                endTime,
-                timeZone
+                dto.symbol,
+                dto.interval,
+                dto.limit,
+                dto.startTime,
+                dto.endTime,
+                dto.timeZone
             );
+
             sendResponse(
                 res,
                 new ResponseOkDto(

@@ -10,12 +10,15 @@ import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 const strategyRouter = Router();
 
 strategyRouter.get("/runnable", StrategyController.getRunnableStrategies);
+
 strategyRouter.get("/created", StrategyController.getStrategies);
+
 strategyRouter.post(
     "/",
     validateDto(CreateStrategyDto, ValidationType.BODY),
     StrategyController.createStrategy
 );
+
 strategyRouter.post(
     "/run/:id",
     validateDto(RunStrategyDto, ValidationType.PARAMS),
@@ -23,6 +26,7 @@ strategyRouter.post(
 );
 
 strategyRouter.get("/running", StrategyController.getRunningStrategies);
+
 strategyRouter.get(
     "/orders/:id",
     validateDto(GetStrategyOrdersDto, ValidationType.PARAMS),

@@ -1,21 +1,26 @@
 import axios from "axios";
+import { BinanceFetchingError } from "../errors/binance-fetching.error";
 
-export class MarketDataService {
-    private baseUrl = "https://api.binance.com/api/v3";
+class MarketDataService {
+    private binanceUrl = "https://api.binance.com/api/v3";
 
     /**
      * Récupérer le prix moyen pour un symbole
      * Paramètres:
-     * - symbol: paire de trading , string , obligatoire
+     * - symbol: paire de trading, string, obligatoire
      */
     async getAveragePrice(symbol: string) {
         try {
-            const response = await axios.get(`${this.baseUrl}/avgPrice`, {
+            const response = await axios.get(`${this.binanceUrl}/avgPrice`, {
                 params: { symbol },
             });
             return response.data;
-        } catch (error) {
-            throw new Error("Erreur lors de la récupération du prix moyen");
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "average-price",
+                error.response.data.msg,
+                error.response.data.code
+            );
         }
     }
 
@@ -25,17 +30,19 @@ export class MarketDataService {
      * - symbol: paire de trading , string , optionnel
      * - symbols: tableau de paires de trading , string , optionnel
      * Peux pas mettre les deux en même temps
-     * - type: type de filtre , enum , optionnel , valeurs possibles: "FULL" ou "MINI", default = "FULL"
+     * - type: type de filtre, enum, optionnel, valeurs possibles: "FULL" ou "MINI", default = "FULL"
      */
     async get24hPriceChange(symbol: string, type?: string) {
         try {
-            const response = await axios.get(`${this.baseUrl}/ticker/24hr`, {
+            const response = await axios.get(`${this.binanceUrl}/ticker/24hr`, {
                 params: { symbol, type },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération de l'évolution des prix sur 24h"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "ticker/24hr",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -49,12 +56,19 @@ export class MarketDataService {
      */
     async getTickerPrice(symbol: string, symbols?: string[]) {
         try {
-            const response = await axios.get(`${this.baseUrl}/ticker/price`, {
-                params: { symbol, symbols },
-            });
+            const response = await axios.get(
+                `${this.binanceUrl}/ticker/price`,
+                {
+                    params: { symbol, symbols },
+                }
+            );
             return response.data;
-        } catch (error) {
-            throw new Error("Erreur lors de la récupération du prix actuel");
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "ticker/price",
+                error.response.data.msg,
+                error.response.data.code
+            );
         }
     }
 
@@ -67,13 +81,15 @@ export class MarketDataService {
      */
     async getRecentTrades(symbol: string, limit?: number) {
         try {
-            const response = await axios.get(`${this.baseUrl}/trades`, {
+            const response = await axios.get(`${this.binanceUrl}/trades`, {
                 params: { symbol, limit },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des trades récents"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "trades",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -89,15 +105,17 @@ export class MarketDataService {
     async getOldTrades(symbol: string, limit?: number, fromId?: number) {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/historicalTrades`,
+                `${this.binanceUrl}/historicalTrades`,
                 {
                     params: { symbol, limit, fromId },
                 }
             );
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des trades anciens"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "historicalTrades",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -119,13 +137,15 @@ export class MarketDataService {
         limit?: number
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/aggTrades`, {
+            const response = await axios.get(`${this.binanceUrl}/aggTrades`, {
                 params: { symbol, fromId, startTime, endTime, limit },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des trades agrégés"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "aggTrades",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -138,12 +158,16 @@ export class MarketDataService {
      */
     async getOrderBook(symbol: string, limit?: number) {
         try {
-            const response = await axios.get(`${this.baseUrl}/depth`, {
+            const response = await axios.get(`${this.binanceUrl}/depth`, {
                 params: { symbol, limit },
             });
             return response.data;
-        } catch (error) {
-            throw new Error("Erreur lors de la récupération de l'order book");
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "depth",
+                error.response.data.msg,
+                error.response.data.code
+            );
         }
     }
 
@@ -166,7 +190,7 @@ export class MarketDataService {
         timeZone?: string
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/klines`, {
+            const response = await axios.get(`${this.binanceUrl}/klines`, {
                 params: {
                     symbol,
                     interval,
@@ -190,9 +214,11 @@ export class MarketDataService {
                 takerBuyQuoteAssetVolume: candle[10],
                 ignore: candle[11],
             }));
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération de l'historique des prix du marché"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "klines",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -216,7 +242,7 @@ export class MarketDataService {
         timeZone?: string
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/klines`, {
+            const response = await axios.get(`${this.binanceUrl}/klines`, {
                 params: {
                     symbol,
                     interval,
@@ -240,9 +266,11 @@ export class MarketDataService {
                 takerBuyQuoteAssetVolume: candle[10],
                 ignore: candle[11],
             }));
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération de l'historique des prix du marché"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "klines",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -263,13 +291,15 @@ export class MarketDataService {
         timeZone?: string
     ) {
         try {
-            const response = await axios.get(`${this.baseUrl}/tradingDay`, {
+            const response = await axios.get(`${this.binanceUrl}/tradingDay`, {
                 params: { symbol, symbols, type, timeZone },
             });
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération des statistiques des changements de prix pour un jour"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "tradingDay",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
@@ -284,16 +314,20 @@ export class MarketDataService {
     async getBestOrderBook(symbol: string, symbols?: string[]) {
         try {
             const response = await axios.get(
-                `${this.baseUrl}/ticker/bookTicker`,
+                `${this.binanceUrl}/ticker/bookTicker`,
                 {
                     params: { symbol, symbols },
                 }
             );
             return response.data;
-        } catch (error) {
-            throw new Error(
-                "Erreur lors de la récupération du meilleur prix/quantité sur le carnet d'ordres"
+        } catch (error: any) {
+            throw new BinanceFetchingError(
+                "ticker/bookTicker",
+                error.response.data.msg,
+                error.response.data.code
             );
         }
     }
 }
+
+export const marketDataService = new MarketDataService();

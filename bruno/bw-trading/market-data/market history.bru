@@ -5,14 +5,11 @@ meta {
 }
 
 get {
-  url: {{host}}/market-data/market-history
-  body: json
+  url: {{host}}/market-data/history?symbol=BTCUSD
+  body: none
   auth: none
 }
 
-body:json {
-  {
-    "symbol": "BTCUSD",
-    "interval": "1m"
-  }
+params:query {
+  symbol: BTCUSD
 }
