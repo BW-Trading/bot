@@ -1,3 +1,4 @@
+import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
 import { Portfolio } from "../entities/portfolio.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
@@ -34,7 +35,7 @@ class StrategyService {
     async createStrategy(
         name: string,
         description: string,
-        asset: string,
+        asset: TradeableAssetEnum,
         strategyEnum: StrategiesEnum,
         config: any,
         interval: number,
@@ -55,10 +56,7 @@ class StrategyService {
         strategy.strategy = strategyEnum;
         strategy.config = config;
         strategy.interval = interval;
-        const portfolio = await portfolioService.createPortfolio(
-            asset,
-            balance || 0
-        );
+        const portfolio = await portfolioService.createPortfolio(balance || 0);
         strategy.portfolio = portfolio;
 
         return this.strategyRepository.save(strategy);
@@ -108,6 +106,24 @@ class StrategyService {
         const strategy = await this.getStrategyByIdOrThrow(strategyId);
 
         return strategy.portfolio;
+    }
+
+    async buyAsset(strategyId: number, price: number, amount: number) {
+        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+
+        return portfolioService.buyAsset(strategy.portfolio.id, price, amount);
+    }
+
+    async sellAsset(strategyId: number, price: number, amount: number) {
+        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+
+        return portfolioService.sellAsset(strategy.portfolio.id, price, amount);
+    }
+
+    async addBalance(strategyId: number, amount: number) {
+        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+
+        return await portfolioService.addBalance(strategy.portfolio.id, amount);
     }
 }
 

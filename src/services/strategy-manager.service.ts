@@ -5,6 +5,9 @@ import { strategyService } from "./strategy.service";
 import { Strategy } from "../entities/strategy.entity";
 import { strategyExecutionService } from "./strategy-execution.service";
 import { marketActionService } from "./market-action.service";
+import { MarketAction } from "../entities/market-action.entity";
+import { MarketActionEnum } from "../entities/enums/market-action.enum";
+import { error } from "console";
 
 interface StrategyInstance {
     instance: ITradingStrategy;
@@ -34,24 +37,64 @@ export class StrategyManagerService {
         logger.info(`${strategies.length} active strategies loaded`);
     }
 
-    async startStrategy(strategy: Strategy) {
+    async runOnce(strategy: Strategy) {
         const strategyClass = strategyService.getStrategyClass(
             strategy.strategy
         );
 
-        const strategyId = strategy.id;
-        const config = strategy.config;
-        const interval = strategy.interval;
-        const name = strategy.name;
+        const strategyInstance = new strategyClass(strategy);
 
-        const strategyInstance = new strategyClass(
-            strategyId,
-            name,
-            config,
-            interval
+        strategyInstance.start();
+
+        let currentExecution;
+        try {
+            currentExecution = await strategyExecutionService.create(strategy);
+        } catch (error) {
+            logger.error(
+                `Error creating execution for strategy ${strategy.id}`
+            );
+            return;
+        }
+
+        try {
+            const execution = await strategyExecutionService.execute(
+                currentExecution
+            );
+
+            const resultingMarketActions = await strategyInstance.run();
+
+            await this.executeMarketActions(strategy, resultingMarketActions);
+
+            await strategyExecutionService.complete(
+                execution,
+                resultingMarketActions
+            );
+        } catch (error: any) {
+            await strategyExecutionService.fail(currentExecution, error);
+        } finally {
+            strategyInstance.stop();
+        }
+    }
+
+    async startStrategy(strategy: Strategy) {
+        if (this.strategies.has(strategy.id)) {
+            logger.warn(`Strategy ${strategy.id} is already running`);
+        }
+
+        const strategyClass = strategyService.getStrategyClass(
+            strategy.strategy
         );
 
+        const strategyInstance = new strategyClass(strategy);
+
         const intervalId = setInterval(async () => {
+            if (strategyInstance.getRunning()) {
+                logger.warn(`Strategy ${strategy.id} is already running`);
+                return;
+            }
+
+            strategyInstance.start();
+
             let currentExecution;
             try {
                 currentExecution = await strategyExecutionService.create(
@@ -71,18 +114,21 @@ export class StrategyManagerService {
 
                 const resultingMarketActions = await strategyInstance.run();
 
-                const marketActions = await marketActionService.save(
+                await this.executeMarketActions(
+                    strategy,
                     resultingMarketActions
                 );
 
                 await strategyExecutionService.complete(
                     execution,
-                    marketActions
+                    resultingMarketActions
                 );
             } catch (error: any) {
                 await strategyExecutionService.fail(currentExecution, error);
+            } finally {
+                strategyInstance.stop();
             }
-        }, interval);
+        }, strategy.interval);
 
         this.strategies.set(intervalId as unknown as number, {
             instance: strategyInstance,
@@ -112,5 +158,36 @@ export class StrategyManagerService {
 
     getRunningStrategies(): ITradingStrategy[] {
         return Array.from(this.strategies.values()).map((s) => s.instance);
+    }
+
+    async executeMarketActions(strategy: Strategy, marketActions: any[]) {
+        await marketActionService.save(marketActions);
+
+        marketActions.forEach(async (action: MarketAction) => {
+            try {
+                switch (action.action) {
+                    case MarketActionEnum.BUY:
+                        await strategyService.buyAsset(
+                            strategy.id,
+                            action.price,
+                            action.amount
+                        );
+                    case MarketActionEnum.SELL:
+                        await strategyService.sellAsset(
+                            strategy.id,
+                            action.price,
+                            action.amount
+                        );
+                        break;
+                    default:
+                        logger.error(`Unknown action ${action.action}`);
+                        break;
+                }
+
+                await marketActionService.executed(action);
+            } catch (error: any) {
+                await marketActionService.fail(action, error.message);
+            }
+        });
     }
 }

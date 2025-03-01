@@ -7,18 +7,18 @@ import {
 } from "typeorm";
 import { MarketActionEnum } from "./enums/market-action.enum";
 import { StrategyExecution } from "./strategy-execution.entity";
+import { MarketActionStatusEnum } from "./enums/market-action-status.enum";
+import { DecimalTransformer } from "../utils/decimal-transformer";
 
 @Entity()
 export class MarketAction {
     constructor(
         action: MarketActionEnum,
         price: number,
-        size: number,
-        asset: string,
+        amount: number,
         exchangeOrderId?: string
     ) {
-        this.asset = asset;
-        this.size = size;
+        this.amount = amount;
         this.action = action;
         this.price = price;
         this.exchangeOrderId = exchangeOrderId || undefined;
@@ -30,14 +30,19 @@ export class MarketAction {
     @Column({ type: "enum", enum: MarketActionEnum })
     action!: MarketActionEnum;
 
-    @Column()
-    asset!: string;
-
-    @Column("decimal", { precision: 16, scale: 8 })
+    @Column("decimal", {
+        precision: 16,
+        scale: 8,
+        transformer: DecimalTransformer,
+    })
     price!: number;
 
-    @Column("decimal", { precision: 16, scale: 8 })
-    size!: number;
+    @Column("decimal", {
+        precision: 16,
+        scale: 8,
+        transformer: DecimalTransformer,
+    })
+    amount!: number;
 
     @CreateDateColumn()
     createdAt!: Date;
@@ -50,4 +55,17 @@ export class MarketAction {
         (strategyExecution) => strategyExecution.resultingMarketActions
     )
     strategyExecution!: StrategyExecution;
+
+    @Column({
+        type: "enum",
+        enum: MarketActionStatusEnum,
+        default: MarketActionStatusEnum.PENDING,
+    })
+    status!: MarketActionStatusEnum;
+
+    @Column({ nullable: true })
+    failedAt?: Date;
+
+    @Column({ nullable: true })
+    failedReason?: string;
 }

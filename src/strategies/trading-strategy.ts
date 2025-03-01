@@ -1,27 +1,27 @@
 import { MarketAction } from "../entities/market-action.entity";
-import { StrategiesEnum } from "./strategies";
+import { Strategy } from "../entities/strategy.entity";
 import { ITradingStrategy } from "./trading-strategy.interface";
 
 export abstract class TradingStrategy implements ITradingStrategy {
-    strategyId: number;
-    name: string;
-    strategy: StrategiesEnum;
-    config: any;
-    interval: number;
+    strategy: Strategy;
+    isRunning: boolean;
 
-    constructor(
-        strategyId: number,
-        name: string,
-        strategy: StrategiesEnum,
-        config: any,
-        interval: number
-    ) {
-        this.strategyId = strategyId;
-        this.name = name;
+    constructor(strategy: Strategy) {
         this.strategy = strategy;
-        this.config = config;
-        this.interval = interval;
+        this.isRunning = false;
     }
 
     abstract run(): Promise<MarketAction[]>;
+
+    start() {
+        this.isRunning = true;
+    }
+
+    stop() {
+        this.isRunning = false;
+    }
+
+    getRunning(): boolean {
+        return this.isRunning;
+    }
 }

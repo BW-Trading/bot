@@ -6,6 +6,10 @@ import { Strategy } from "../entities/strategy.entity";
 import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { plainToInstance } from "class-transformer";
 import { StrategyManagerService } from "../services/strategy-manager.service";
+import { AddBalanceStrategyDto } from "../dto/requests/strategy/add-balance.dto";
+import { Portfolio } from "../entities/portfolio.entity";
+import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
+import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -93,10 +97,25 @@ export class StrategyController {
 
     static async runStrategy(req: Request, res: Response, next: NextFunction) {
         try {
-            const id = parseInt(req.params.id);
-            const strategy = await strategyService.getStrategyByIdOrThrow(id);
+            const dto = plainToInstance(RunStrategyDto, req.params);
+            const strategy = await strategyService.getStrategyByIdOrThrow(
+                dto.id
+            );
             StrategyManagerService.getInstance().startStrategy(strategy);
             sendResponse(res, new ResponseOkDto("Strategy started", 200));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async runOnce(req: Request, res: Response, next: NextFunction) {
+        try {
+            const dto = plainToInstance(RunStrategyOnceDto, req.params);
+            const strategy = await strategyService.getStrategyByIdOrThrow(
+                dto.id
+            );
+            StrategyManagerService.getInstance().runOnce(strategy);
+            sendResponse(res, new ResponseOkDto("Strategy executed", 200));
         } catch (error) {
             next(error);
         }
@@ -130,6 +149,27 @@ export class StrategyController {
             sendResponse(
                 res,
                 new ResponseOkDto("Orders retrieved", 200, orders)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async addBalance(req: Request, res: Response, next: NextFunction) {
+        try {
+            const dto: AddBalanceStrategyDto = plainToInstance(
+                AddBalanceStrategyDto,
+                req.body
+            );
+
+            const portfolio = await strategyService.addBalance(
+                dto.id,
+                dto.amount
+            );
+
+            sendResponse(
+                res,
+                new ResponseOkDto<Portfolio>("Balance added", 200, portfolio)
             );
         } catch (error) {
             next(error);

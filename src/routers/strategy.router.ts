@@ -6,6 +6,7 @@ import { ValidationType } from "../dto/validation-type";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
 import { GetStrategyOrdersDto } from "../dto/requests/strategy/get-orders.dto";
 import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
+import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 
 const strategyRouter = Router();
 
@@ -25,6 +26,12 @@ strategyRouter.post(
     StrategyController.runStrategy
 );
 
+strategyRouter.post(
+    "/run-once/:id",
+    validateDto(RunStrategyOnceDto, ValidationType.PARAMS),
+    StrategyController.runOnce
+);
+
 strategyRouter.get("/running", StrategyController.getRunningStrategies);
 
 strategyRouter.get(
@@ -37,6 +44,12 @@ strategyRouter.get(
     "/:id",
     validateDto(GetStrategyByIdDto, ValidationType.PARAMS),
     StrategyController.getStrategy
+);
+
+strategyRouter.post(
+    "/add-balance",
+    validateDto(RunStrategyDto, ValidationType.BODY),
+    StrategyController.addBalance
 );
 
 export default strategyRouter;

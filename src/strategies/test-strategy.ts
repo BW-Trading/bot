@@ -1,24 +1,19 @@
 import { MarketActionEnum } from "../entities/enums/market-action.enum";
 import { MarketAction } from "../entities/market-action.entity";
-import { StrategiesEnum } from "./strategies";
+import { Strategy } from "../entities/strategy.entity";
 import { TradingStrategy } from "./trading-strategy";
 
 export class TestStrategy extends TradingStrategy {
-    constructor(
-        strategyId: number,
-        name: string,
-        config: any,
-        interval: number
-    ) {
-        super(strategyId, name, StrategiesEnum.TEST, config, interval);
+    constructor(strategy: Strategy) {
+        super(strategy);
     }
 
     run(): Promise<MarketAction[]> {
         return new Promise((resolve) => {
-            console.log("Running test strategy");
+            console.log(`Running test strategy ${this.strategy.name}`);
             resolve([
-                new MarketAction(MarketActionEnum.BUY, 100.123, 1, "BTC"),
-                new MarketAction(MarketActionEnum.SELL, 100.124, 1, "BTC"),
+                new MarketAction(MarketActionEnum.BUY, 10, 1),
+                new MarketAction(MarketActionEnum.SELL, 15, 1),
             ]);
         });
     }
