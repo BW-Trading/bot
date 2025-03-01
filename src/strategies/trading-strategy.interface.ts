@@ -1,11 +1,11 @@
 import { MarketAction } from "../entities/market-action.entity";
-import { StrategiesEnum } from "./strategies";
+import { Strategy } from "../entities/strategy.entity";
 
 export interface ITradingStrategy {
-    strategyId: number; // This is the ID of the strategy in the database
-    name: string;
-    strategy: StrategiesEnum;
-    config: any;
-    interval: number;
+    strategy: Strategy;
+    isRunning: boolean;
     run(): Promise<MarketAction[]>;
+    start(): void;
+    stop(): void;
+    getRunning(): boolean;
 }

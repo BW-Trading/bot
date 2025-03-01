@@ -1,11 +1,11 @@
 meta {
-  name: orders
+  name: run once
   type: http
-  seq: 6
+  seq: 9
 }
 
-get {
-  url: {{host}}/strategy/orders/:id
+post {
+  url: {{host}}/strategy/run-once/:id
   body: none
   auth: none
 }

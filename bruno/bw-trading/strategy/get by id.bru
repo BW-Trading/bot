@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{host}}/strategy/1
+  url: {{host}}/strategy/:id
   body: none
   auth: none
+}
+
+params:path {
+  id: 1
 }

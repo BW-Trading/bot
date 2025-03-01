@@ -28,6 +28,7 @@ class StrategyExecutionService {
     ) {
         execution.status = StrategyExecutionStatusEnum.COMPLETED;
         execution.resultingMarketActions = resultingMarketActions;
+        execution.completedAt = new Date();
         return this.strategyExecutionRepository.save(execution);
     }
 

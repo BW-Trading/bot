@@ -9,6 +9,7 @@ import {
 import { StrategiesEnum } from "../strategies/strategies";
 import { StrategyExecution } from "./strategy-execution.entity";
 import { Portfolio } from "./portfolio.entity";
+import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 
 @Entity()
 export class Strategy {
@@ -30,8 +31,8 @@ export class Strategy {
     @Column()
     interval!: number;
 
-    @Column()
-    asset!: string;
+    @Column({ type: "enum", enum: TradeableAssetEnum })
+    asset!: TradeableAssetEnum;
 
     @Column({ default: true })
     isActive!: boolean;

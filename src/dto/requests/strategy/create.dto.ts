@@ -7,6 +7,7 @@ import {
 } from "class-validator";
 import { DTO } from "../../dto";
 import { StrategiesEnum } from "../../../strategies/strategies";
+import { TradeableAssetEnum } from "../../../entities/enums/tradeable-asset.enum";
 
 export class CreateStrategyDto extends DTO {
     @IsString()
@@ -24,8 +25,8 @@ export class CreateStrategyDto extends DTO {
     @IsNumber()
     interval!: number;
 
-    @IsString()
-    asset!: string;
+    @IsEnum(TradeableAssetEnum)
+    asset!: TradeableAssetEnum;
 
     @IsOptional()
     @IsNumber()
