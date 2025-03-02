@@ -63,7 +63,10 @@ export class StrategyManagerService {
 
             const resultingMarketActions = await strategyInstance.run();
 
-            await this.executeMarketActions(strategy, resultingMarketActions);
+            await this.executeSaveMarketActions(
+                strategy,
+                resultingMarketActions
+            );
 
             await strategyExecutionService.complete(
                 execution,
@@ -114,7 +117,7 @@ export class StrategyManagerService {
 
                 const resultingMarketActions = await strategyInstance.run();
 
-                await this.executeMarketActions(
+                await this.executeSaveMarketActions(
                     strategy,
                     resultingMarketActions
                 );
@@ -160,18 +163,19 @@ export class StrategyManagerService {
         return Array.from(this.strategies.values()).map((s) => s.instance);
     }
 
-    async executeMarketActions(strategy: Strategy, marketActions: any[]) {
+    async executeSaveMarketActions(strategy: Strategy, marketActions: any[]) {
         await marketActionService.save(marketActions);
 
         marketActions.forEach(async (action: MarketAction) => {
             try {
                 switch (action.action) {
                     case MarketActionEnum.BUY:
-                        await strategyService.buyAsset(
+                        const result = await strategyService.buyAsset(
                             strategy.id,
                             action.price,
                             action.amount
                         );
+                        break;
                     case MarketActionEnum.SELL:
                         await strategyService.sellAsset(
                             strategy.id,
