@@ -1,3 +1,4 @@
+import { ValidationError } from "class-validator";
 import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { ITradingStrategy } from "./trading-strategy.interface";
@@ -12,6 +13,8 @@ export abstract class TradingStrategy implements ITradingStrategy {
     }
 
     abstract run(): Promise<MarketAction[]>;
+
+    abstract validateConfig(config: any): ValidationError[];
 
     start() {
         this.isRunning = true;

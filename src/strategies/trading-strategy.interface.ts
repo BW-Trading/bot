@@ -1,3 +1,4 @@
+import { ValidationError } from "class-validator";
 import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 
@@ -8,4 +9,5 @@ export interface ITradingStrategy {
     start(): void;
     stop(): void;
     getRunning(): boolean;
+    validateConfig(config: any): ValidationError[];
 }

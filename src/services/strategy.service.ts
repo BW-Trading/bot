@@ -1,8 +1,10 @@
+import { ValidationError } from "class-validator";
 import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
-import { Portfolio } from "../entities/portfolio.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
+import { StrategyConfigValidationError } from "../errors/strategy-config-validation.error";
+import { MovingAverageStrategy } from "../strategies/moving-average-strategy";
 import { StrategiesEnum } from "../strategies/strategies";
 import { TestStrategy } from "../strategies/test-strategy";
 import { ITradingStrategy } from "../strategies/trading-strategy.interface";
@@ -23,6 +25,8 @@ class StrategyService {
         switch (strategy) {
             case StrategiesEnum.TEST:
                 return TestStrategy;
+            case StrategiesEnum.MOVING_AVERAGE:
+                return MovingAverageStrategy;
             default:
                 throw new NotFoundError(
                     "Strategy",
@@ -47,6 +51,15 @@ class StrategyService {
             throw new AlreadyExistsError(
                 "A strategy with this name already exists"
             );
+        }
+
+        const strategyClass = this.getStrategyClass(strategyEnum);
+        const errors: ValidationError[] = new strategyClass().validateConfig(
+            config
+        );
+
+        if (errors.length > 0) {
+            throw new StrategyConfigValidationError(errors);
         }
 
         const strategy = new Strategy();

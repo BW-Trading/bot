@@ -7,7 +7,6 @@ import { strategyExecutionService } from "./strategy-execution.service";
 import { marketActionService } from "./market-action.service";
 import { MarketAction } from "../entities/market-action.entity";
 import { MarketActionEnum } from "../entities/enums/market-action.enum";
-import { error } from "console";
 
 interface StrategyInstance {
     instance: ITradingStrategy;
