@@ -1,7 +1,7 @@
 meta {
-  name: create strategy
+  name: moving-average
   type: http
-  seq: 2
+  seq: 1
 }
 
 post {
@@ -12,14 +12,14 @@ post {
 
 body:json {
   {
-    "name": "Moving average test",
-    "description": "......",
+    "name": "Moving average",
+    "description": "Moving average -5%/+1%",
     "strategyEnum": "MOVING_AVERAGE",
     "config" : {
       "shortPeriod": 60,
       "longPeriod": 500,
       "thresholdBuy": 0.05,
-      "thresholdSell": 0.05,
+      "thresholdSell": 0.01,
       "interval": "1m"
     },
     "interval": 30000,
