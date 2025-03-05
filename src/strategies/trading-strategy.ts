@@ -2,6 +2,7 @@ import { ValidationError } from "class-validator";
 import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { ITradingStrategy } from "./trading-strategy.interface";
+import { strategyService } from "../services/strategy.service";
 
 export abstract class TradingStrategy implements ITradingStrategy {
     strategy: Strategy;
@@ -26,5 +27,9 @@ export abstract class TradingStrategy implements ITradingStrategy {
 
     getRunning(): boolean {
         return this.isRunning;
+    }
+
+    getPortfolio() {
+        return strategyService.getPortfolioForStrategy(this.strategy.id);
     }
 }

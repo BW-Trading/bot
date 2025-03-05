@@ -7,6 +7,7 @@ import { strategyExecutionService } from "./strategy-execution.service";
 import { marketActionService } from "./market-action.service";
 import { MarketAction } from "../entities/market-action.entity";
 import { MarketActionEnum } from "../entities/enums/market-action.enum";
+import { StrategyExecution } from "../entities/strategy-execution.entity";
 
 interface StrategyInstance {
     instance: ITradingStrategy;
@@ -64,6 +65,7 @@ export class StrategyManagerService {
 
             await this.executeSaveMarketActions(
                 strategy,
+                execution,
                 resultingMarketActions
             );
 
@@ -118,6 +120,7 @@ export class StrategyManagerService {
 
                 await this.executeSaveMarketActions(
                     strategy,
+                    execution,
                     resultingMarketActions
                 );
 
@@ -162,14 +165,16 @@ export class StrategyManagerService {
         return Array.from(this.strategies.values()).map((s) => s.instance);
     }
 
-    async executeSaveMarketActions(strategy: Strategy, marketActions: any[]) {
-        await marketActionService.save(marketActions);
-
+    async executeSaveMarketActions(
+        strategy: Strategy,
+        execution: StrategyExecution,
+        marketActions: any[]
+    ) {
         marketActions.forEach(async (action: MarketAction) => {
             try {
                 switch (action.action) {
                     case MarketActionEnum.BUY:
-                        const result = await strategyService.buyAsset(
+                        await strategyService.buyAsset(
                             strategy.id,
                             action.price,
                             action.amount
@@ -182,6 +187,8 @@ export class StrategyManagerService {
                             action.amount
                         );
                         break;
+                    case MarketActionEnum.HOLD:
+                        break;
                     default:
                         logger.error(`Unknown action ${action.action}`);
                         break;
@@ -190,6 +197,9 @@ export class StrategyManagerService {
                 await marketActionService.executed(action);
             } catch (error: any) {
                 await marketActionService.fail(action, error.message);
+            } finally {
+                action.strategyExecution = execution;
+                await marketActionService.save(marketActions);
             }
         });
     }

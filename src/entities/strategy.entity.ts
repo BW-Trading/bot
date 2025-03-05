@@ -6,7 +6,7 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
-import { StrategiesEnum } from "../strategies/strategies";
+import { StrategiesEnum } from "./enums/strategies.enum";
 import { StrategyExecution } from "./strategy-execution.entity";
 import { Portfolio } from "./portfolio.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";

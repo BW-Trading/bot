@@ -1,13 +1,14 @@
-import { IsNumberString, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumberString, IsOptional, IsString } from "class-validator";
 import { DTO } from "../../dto";
+import { IntervalEnum } from "../../../entities/enums/interval.enum";
 
 export class HistoryDto extends DTO {
     @IsString()
     symbol!: string;
 
     @IsOptional()
-    @IsString()
-    interval: string = "1d";
+    @IsEnum(IntervalEnum)
+    interval: IntervalEnum = IntervalEnum.ONE_DAY;
 
     @IsOptional()
     @IsNumberString()

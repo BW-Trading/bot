@@ -1,10 +1,8 @@
 import {
     Column,
     Entity,
-    JoinColumn,
     ManyToOne,
     OneToMany,
-
     PrimaryGeneratedColumn,
 } from "typeorm";
 import { MarketAction } from "./market-action.entity";
@@ -23,7 +21,6 @@ export class StrategyExecution {
         () => MarketAction,
         (marketAction) => marketAction.strategyExecution
     )
-    @JoinColumn()
     resultingMarketActions?: MarketAction[];
 
     @Column({ nullable: true })

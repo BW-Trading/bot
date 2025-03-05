@@ -5,7 +5,7 @@ import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
 import { StrategyConfigValidationError } from "../errors/strategy-config-validation.error";
 import { MovingAverageStrategy } from "../strategies/moving-average-strategy";
-import { StrategiesEnum } from "../strategies/strategies";
+import { StrategiesEnum } from "../entities/enums/strategies.enum";
 import { TestStrategy } from "../strategies/test-strategy";
 import { ITradingStrategy } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";

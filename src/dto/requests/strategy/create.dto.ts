@@ -2,11 +2,12 @@ import {
     IsEnum,
     IsJSON,
     IsNumber,
+    IsObject,
     IsOptional,
     IsString,
 } from "class-validator";
 import { DTO } from "../../dto";
-import { StrategiesEnum } from "../../../strategies/strategies";
+import { StrategiesEnum } from "../../../entities/enums/strategies.enum";
 import { TradeableAssetEnum } from "../../../entities/enums/tradeable-asset.enum";
 
 export class CreateStrategyDto extends DTO {
@@ -19,7 +20,7 @@ export class CreateStrategyDto extends DTO {
     @IsEnum(StrategiesEnum)
     strategyEnum!: StrategiesEnum;
 
-    @IsJSON()
+    @IsObject({ message: "Data must be a valid JSON object" })
     config!: any;
 
     @IsNumber()
