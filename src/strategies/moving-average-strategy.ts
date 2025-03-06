@@ -3,6 +3,7 @@ import { MarketActionEnum } from "../entities/enums/market-action.enum";
 import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { marketDataService } from "../services/market-data.service";
+import { maxBuyableAmount } from "../utils/helpers/buy-sell-helper";
 import { TradingStrategy } from "./trading-strategy";
 import { IsNumber, ValidationError } from "class-validator";
 
@@ -199,7 +200,10 @@ export class MovingAverageStrategy extends TradingStrategy {
                     new MarketAction(
                         MarketActionEnum.BUY,
                         currentPrice,
-                        await this.maxBuyableAmount(currentPrice)
+                        maxBuyableAmount(
+                            await this.getPortfolio(),
+                            currentPrice
+                        )
                     )
                 );
             } else if (
@@ -235,11 +239,6 @@ export class MovingAverageStrategy extends TradingStrategy {
         }
 
         return resultingActions;
-    }
-
-    private async maxBuyableAmount(price: number): Promise<number> {
-        const portfolio = await this.getPortfolio();
-        return portfolio.availableBalance / price;
     }
 
     // Calculer la moyenne mobile sur les N dernières bougies
