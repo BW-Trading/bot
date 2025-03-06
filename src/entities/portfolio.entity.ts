@@ -35,7 +35,12 @@ export class Portfolio {
     })
     reservedBalance!: number;
 
-    @Column({ default: 0 })
+    @Column("decimal", {
+        precision: 16,
+        scale: 8,
+        default: 0,
+        transformer: DecimalTransformer,
+    })
     amount!: number;
 
     @UpdateDateColumn()
