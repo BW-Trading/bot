@@ -7,6 +7,8 @@ import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
 import { GetStrategyOrdersDto } from "../dto/requests/strategy/get-orders.dto";
 import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
+import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
+import { StopStrategyDto } from "../dto/requests/strategy/stop.dto";
 
 const strategyRouter = Router();
 
@@ -50,6 +52,18 @@ strategyRouter.post(
     "/add-balance",
     validateDto(RunStrategyDto, ValidationType.BODY),
     StrategyController.addBalance
+);
+
+strategyRouter.put(
+    "/archive/:id",
+    validateDto(ArchiveStrategyDto, ValidationType.PARAMS),
+    StrategyController.archiveStrategy
+);
+
+strategyRouter.post(
+    "/stop/:id",
+    validateDto(StopStrategyDto, ValidationType.PARAMS),
+    StrategyController.stopStrategy
 );
 
 export default strategyRouter;

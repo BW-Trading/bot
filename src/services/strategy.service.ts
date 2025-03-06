@@ -10,6 +10,7 @@ import { TestStrategy } from "../strategies/test-strategy";
 import { ITradingStrategy } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";
 import { portfolioService } from "./portfolio.service";
+import { StrategyManagerService } from "./strategy-manager.service";
 
 class StrategyService {
     private strategyRepository =
@@ -137,6 +138,18 @@ class StrategyService {
         const strategy = await this.getStrategyByIdOrThrow(strategyId);
 
         return await portfolioService.addBalance(strategy.portfolio.id, amount);
+    }
+
+    async archiveStrategy(strategyId: number) {
+        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+
+        if(await StrategyManagerService.getInstance().isRunning(strategyId)) {
+            StrategyManagerService.getInstance().stopStrategy(strategyId);
+        }
+
+        strategy.isActive = false;
+
+        return this.strategyRepository.save(strategy);
     }
 }
 

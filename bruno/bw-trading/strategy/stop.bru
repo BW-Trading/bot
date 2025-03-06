@@ -1,0 +1,15 @@
+meta {
+  name: stop
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{host}}/strategy/stop/:id
+  body: none
+  auth: none
+}
+
+params:path {
+  id: 1
+}

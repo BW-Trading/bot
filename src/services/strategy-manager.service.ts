@@ -27,6 +27,10 @@ export class StrategyManagerService {
 
     private strategies: Map<number, StrategyInstance> = new Map();
 
+    async isRunning(strategyId: number) {
+        return this.strategies.has(strategyId);
+    }
+
     async loadAllStrategies() {
         const strategies = await strategyService.getStrategies();
 
@@ -135,25 +139,25 @@ export class StrategyManagerService {
             }
         }, strategy.interval);
 
-        this.strategies.set(intervalId as unknown as number, {
+        this.strategies.set(strategy.id, {
             instance: strategyInstance,
             intervalId,
         });
         return intervalId;
     }
 
-    stopStrategy(intervalId: number) {
-        const strategyInstance = this.strategies.get(intervalId);
+    stopStrategy(strategyId: number) {
+        const strategyInstance = this.strategies.get(strategyId);
         if (!strategyInstance) {
             throw new NotFoundError(
                 "Strategy",
                 "Strategy not found",
-                intervalId.toString()
+                strategyId.toString()
             );
         }
 
         clearInterval(strategyInstance.intervalId);
-        this.strategies.delete(intervalId);
+        this.strategies.delete(strategyId);
     }
 
     stopAllStrategies() {

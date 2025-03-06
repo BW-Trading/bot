@@ -10,6 +10,8 @@ import { AddBalanceStrategyDto } from "../dto/requests/strategy/add-balance.dto"
 import { Portfolio } from "../entities/portfolio.entity";
 import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
+import { StrategyNotActiveError } from "../errors/strategy-not-active.error";
+import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -101,6 +103,11 @@ export class StrategyController {
             const strategy = await strategyService.getStrategyByIdOrThrow(
                 dto.id
             );
+
+            if (!strategy.isActive) {
+                throw new StrategyNotActiveError(strategy.id);
+            }
+
             StrategyManagerService.getInstance().startStrategy(strategy);
             sendResponse(res, new ResponseOkDto("Strategy started", 200));
         } catch (error) {
@@ -114,6 +121,9 @@ export class StrategyController {
             const strategy = await strategyService.getStrategyByIdOrThrow(
                 dto.id
             );
+            if (!strategy.isActive) {
+                throw new StrategyNotActiveError(strategy.id);
+            }
             StrategyManagerService.getInstance().runOnce(strategy);
             sendResponse(res, new ResponseOkDto("Strategy executed", 200));
         } catch (error) {
@@ -170,6 +180,37 @@ export class StrategyController {
             sendResponse(
                 res,
                 new ResponseOkDto<Portfolio>("Balance added", 200, portfolio)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async stopStrategy(req: Request, res: Response, next: NextFunction) {
+        try {
+            const dto = plainToInstance(RunStrategyDto, req.params);
+            const strategy = await strategyService.getStrategyByIdOrThrow(
+                dto.id
+            );
+            StrategyManagerService.getInstance().stopStrategy(strategy.id);
+            sendResponse(res, new ResponseOkDto("Strategy stopped", 200));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async archiveStrategy(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const dto = plainToInstance(ArchiveStrategyDto, req.params);
+
+            const strategy = await strategyService.archiveStrategy(dto.id);
+            sendResponse(
+                res,
+                new ResponseOkDto<Strategy>("Strategy archived", 200, strategy)
             );
         } catch (error) {
             next(error);
