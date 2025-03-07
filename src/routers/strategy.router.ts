@@ -65,25 +65,6 @@ strategyRouter.post(
     validateDto(StopStrategyDto, ValidationType.PARAMS),
     StrategyController.stopStrategy
 );
-
-strategyRouter.post(
-    "/add-balance",
-    validateDto(RunStrategyDto, ValidationType.BODY),
-    StrategyController.addBalance
-);
-
-strategyRouter.put(
-    "/archive/:id",
-    validateDto(ArchiveStrategyDto, ValidationType.PARAMS),
-    StrategyController.archiveStrategy
-);
-
-strategyRouter.post(
-    "/stop/:id",
-    validateDto(StopStrategyDto, ValidationType.PARAMS),
-    StrategyController.stopStrategy
-);
-
 strategyRouter.get(
     "/portfolio/:id",
     validateDto(GetStrategyByIdDto, ValidationType.PARAMS),
