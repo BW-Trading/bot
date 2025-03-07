@@ -13,8 +13,15 @@ export abstract class TradingStrategy implements ITradingStrategy {
         this.isRunning = false;
     }
 
+    /**
+     * Fonction abstraite à implémenter par les classes filles
+     * Décrit les actions à effectuer lors de l'exécution de la stratégie
+     */
     abstract run(): Promise<MarketAction[]>;
 
+    /**
+     * Fonction de validation de la configuration appelée par le service de stratégie à la création d'une instance
+     */
     abstract validateConfig(config: any): ValidationError[];
 
     start() {
