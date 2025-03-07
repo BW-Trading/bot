@@ -165,6 +165,19 @@ export class StrategyController {
         }
     }
 
+    static async getPortfolio(req: Request, res: Response, next: NextFunction) {
+        try {
+            const id = parseInt(req.params.id);
+            const portfolio = await strategyService.getPortfolioForStrategy(id);
+            sendResponse(
+                res,
+                new ResponseOkDto("Portfolio retrieved", 200, portfolio)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
     static async addBalance(req: Request, res: Response, next: NextFunction) {
         try {
             const dto: AddBalanceStrategyDto = plainToInstance(

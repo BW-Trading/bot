@@ -9,6 +9,7 @@ import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { StopStrategyDto } from "../dto/requests/strategy/stop.dto";
+import { GetStrategyByIdPortfolioDto } from "../dto/requests/strategy/get-by-id-portfolio.dto";
 
 const strategyRouter = Router();
 
@@ -65,5 +66,9 @@ strategyRouter.post(
     validateDto(StopStrategyDto, ValidationType.PARAMS),
     StrategyController.stopStrategy
 );
-
+strategyRouter.get(
+    "/portfolio/:id",
+    validateDto(GetStrategyByIdPortfolioDto, ValidationType.PARAMS),
+    StrategyController.getPortfolio
+);
 export default strategyRouter;
