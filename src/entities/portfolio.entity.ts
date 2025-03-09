@@ -43,6 +43,9 @@ export class Portfolio {
     })
     amount!: number;
 
+    @Column({ default: 0 })
+    inputBalance!: number;
+
     @UpdateDateColumn()
     updatedAt!: Date;
 }

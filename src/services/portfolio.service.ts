@@ -81,6 +81,7 @@ class PortfolioService {
         }
         portfolio.totalBalance = portfolio.totalBalance + amount;
         portfolio.availableBalance = portfolio.availableBalance + amount;
+        portfolio.inputBalance += amount;
 
         return this.portflioRepository.save(portfolio);
     }

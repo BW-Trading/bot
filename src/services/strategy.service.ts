@@ -143,7 +143,7 @@ class StrategyService {
     async archiveStrategy(strategyId: number) {
         const strategy = await this.getStrategyByIdOrThrow(strategyId);
 
-        if(await StrategyManagerService.getInstance().isRunning(strategyId)) {
+        if (await StrategyManagerService.getInstance().isRunning(strategyId)) {
             StrategyManagerService.getInstance().stopStrategy(strategyId);
         }
 
