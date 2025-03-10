@@ -10,6 +10,8 @@ import cookieParser from "cookie-parser";
 import baseRouter from "./routers/baseV1.router";
 import DatabaseManager from "./services/database-manager.service";
 import { StrategyManagerService } from "./services/strategy-manager.service";
+import session from "express-session";
+import { sessionConfig } from "./config/session";
 
 /**
  * The server class is a singleton class that creates an instance of the express app.
@@ -43,6 +45,7 @@ export class Server {
         this.app.use(cookieParser());
         this.app.use(helmet());
         this.app.use(corsConfig);
+        this.app.use(sessionConfig);
     }
     // Configure the app with routes
     private routes() {

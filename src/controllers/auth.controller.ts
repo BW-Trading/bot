@@ -32,7 +32,9 @@ class AuthController {
             });
 
             const responseDto = new ResponseOkDto("Login successful", 200, {
+                id: user.id,
                 username: user.username,
+                createdAt: user.createdAt,
             });
             sendResponse(res, responseDto);
         } catch (error) {

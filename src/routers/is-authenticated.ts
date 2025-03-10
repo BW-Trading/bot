@@ -12,6 +12,10 @@ export function isAuthenticated(
         return next();
     }
 
+    if (!req.session) {
+        throw new UnauthenticatedError();
+    }
+
     const token = req.cookies.authToken;
     const sessionUser = req.session.user;
 
