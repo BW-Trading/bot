@@ -24,6 +24,10 @@ export const appEnv = {
         httpOnly: getEnvVariable<boolean>("COOKIES_HTTP_ONLY", "boolean"),
         maxAge: getEnvVariable<number>("COOKIES_MAX_AGE", "number"),
     },
+    session: {
+        secret: getEnvVariable<string>("SESSION_SECRET", "string"),
+        
+    },
     cors: {
         origin: getEnvVariable<string>("CORS_ORIGIN", "string"),
     },
