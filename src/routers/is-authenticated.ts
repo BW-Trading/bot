@@ -1,12 +1,17 @@
 import { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth.service";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
+import { appEnv } from "../utils/env/app-env";
 
 export function isAuthenticated(
     req: Request,
     res: Response,
     next: NextFunction
 ) {
+    if (appEnv.auth.ignoreAuth) {
+        return next();
+    }
+
     const token = req.cookies.authToken;
     const sessionUser = req.session.user;
 
