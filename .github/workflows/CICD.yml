@@ -1,0 +1,43 @@
+
+name: Node.js CDeployment
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+    integrate-job:
+      runs-on: ubuntu-latest
+
+      steps:
+      - uses: actions/checkout@v3
+      - name: CI
+        uses: actions/setup-node@v3
+        with:
+          node-version: 21.x
+      - run: npm i
+      - run: npm run build
+
+    deploy-job:
+      needs: integrate-job
+      runs-on: ubuntu-latest
+      steps:
+      - name: CD
+        uses: appleboy/ssh-action@v1.2.0
+        with:          
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: 22
+          script: |
+            eval $(ssh-agent -s)
+            ssh-add ${{secrets.PRIVATE_KEY_PATH}}
+            cd /home/aiveriwhair/bw-trading
+            git pull origin main
+            git status
+            npm install
+            npm run build
+            npx typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts
+            pm2 restart bw-trading-backend
