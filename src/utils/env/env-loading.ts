@@ -28,7 +28,7 @@ export const getEnvVariable = <T>(key: string, type: EnvVarType): T => {
         }
     }
 
-    if (!validated) {
+    if (validated === undefined) {
         console.error(`Error validating environment variable ${key}`);
         process.exit(1);
     }
@@ -43,9 +43,7 @@ export const getOptionalEnvVariable = <T>(
     const value = process.env[key];
 
     if (!value) {
-        console.warn(
-            `Environment variable ${key} is not set but retrieved optionally.`
-        );
+        console.warn(`Optionnal environment variable ${key} is not set.`);
         return undefined;
     }
 
@@ -54,15 +52,16 @@ export const getOptionalEnvVariable = <T>(
         validated = validateEnvVariable<T>(value, type, key);
     } catch (error) {
         if (error instanceof VarEnvValidationError) {
-            console.error(
-                `Error validating environment variable ${key}: ${error.message}`
+            console.warn(
+                `Validating optionnal environment variable failed ${key}: ${error.message}`
             );
-            process.exit(1);
         }
+        return undefined;
     }
 
-    if (!validated) {
-        console.warn(`Error validating environment variable ${key}`);
+    if (validated === undefined) {
+        console.warn(`Validating optionnal environment variable failed ${key}`);
+        return undefined;
     }
 
     return validated;

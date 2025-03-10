@@ -4,6 +4,7 @@ export const appEnv = {
     app: {
         name: getEnvVariable<string>("APP_NAME", "string"),
         version: getEnvVariable<string>("APP_VERSION", "string"),
+        domain: getEnvVariable<string>("APP_DOMAIN", "string"),
     },
     server: {
         baseRouterUrlV1: getEnvVariable<string>("BASE_ROUTER_URL_V1", "string"),
@@ -12,14 +13,23 @@ export const appEnv = {
             getOptionalEnvVariable<string>("NODE_ENV", "string") ||
             "development",
     },
+    auth: {
+        ignoreAuth:
+            getOptionalEnvVariable<boolean>("IGNORE_AUTH", "boolean") || false,
+        jwtSecret: getEnvVariable<string>("JWT_SECRET", "string"),
+        jwtExpiresIn: getEnvVariable<string>("JWT_EXPIRES", "string"),
+    },
     cookies: {
-        maxAge: getEnvVariable<string>("COOKIES_MAX_AGE", "string"),
+        secured: getEnvVariable<boolean>("COOKIES_SECURED", "boolean"),
+        httpOnly: getEnvVariable<boolean>("COOKIES_HTTP_ONLY", "boolean"),
+        maxAge: getEnvVariable<number>("COOKIES_MAX_AGE", "number"),
     },
     cors: {
         origin: getEnvVariable<string>("CORS_ORIGIN", "string"),
     },
     logs: {
-        console_logs: getOptionalEnvVariable<Boolean>("LOG_CONSOLE", "boolean"),
+        console_logs:
+            getOptionalEnvVariable<boolean>("LOG_CONSOLE", "boolean") || false,
         logs_path: getEnvVariable<string>("LOGS_PATH", "string"),
     },
     database: {

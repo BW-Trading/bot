@@ -2,6 +2,7 @@ import {
     Column,
     Entity,
     JoinColumn,
+    ManyToOne,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
@@ -10,6 +11,7 @@ import { StrategiesEnum } from "./enums/strategies.enum";
 import { StrategyExecution } from "./strategy-execution.entity";
 import { Portfolio } from "./portfolio.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
+import { User } from "./user.entity";
 
 @Entity()
 export class Strategy {
@@ -44,4 +46,7 @@ export class Strategy {
     @OneToOne(() => Portfolio)
     @JoinColumn()
     portfolio!: Portfolio;
+
+    @ManyToOne(() => User, (user) => user.strategies)
+    user!: User;
 }
