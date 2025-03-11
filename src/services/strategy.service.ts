@@ -80,6 +80,19 @@ class StrategyService {
         return this.strategyRepository.findOneBy({ name });
     }
 
+    async getUserStrategyByIdOrThrow(userId: string, id: number) {
+        const strategy = await this.strategyRepository.findOne({
+            where: { id: id, user: { id: userId } },
+            relations: ["portfolio", "user"],
+        });
+
+        if (!strategy) {
+            throw new NotFoundError("Strategy", "Strategy not found", "id");
+        }
+
+        return strategy;
+    }
+
     async getStrategyByIdOrThrow(id: number) {
         const strategy = await this.strategyRepository.findOne({
             where: { id: id },
@@ -93,9 +106,31 @@ class StrategyService {
         return strategy;
     }
 
-    getStrategies(isActive: boolean = true) {
-        return this.strategyRepository.find({
+    async getStrategies(isActive: boolean = true) {
+        return await this.strategyRepository.find({
             where: { isActive: isActive },
+        });
+    }
+
+    async getUserStrategies(userId: string, isActive: boolean = true) {
+        const strategies = await this.strategyRepository.find({
+            where: {
+                isActive: isActive,
+                user: { id: userId },
+            },
+            relations: ["user"],
+        });
+
+        return strategies;
+    }
+
+    async getUserStrategy(userId: string, strategyId: number) {
+        return this.strategyRepository.findOne({
+            where: {
+                id: strategyId,
+                user: { id: userId },
+            },
+            relations: ["user"],
         });
     }
 
@@ -116,8 +151,11 @@ class StrategyService {
         return orders.executions.flatMap((exec) => exec.resultingMarketActions);
     }
 
-    async getPortfolioForStrategy(strategyId: number) {
-        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+    async getPortfolioForStrategy(userId: string, strategyId: number) {
+        const strategy = await this.getUserStrategyByIdOrThrow(
+            userId,
+            strategyId
+        );
 
         return strategy.portfolio;
     }
@@ -134,14 +172,20 @@ class StrategyService {
         return portfolioService.sellAsset(strategy.portfolio.id, price, amount);
     }
 
-    async addBalance(strategyId: number, amount: number) {
-        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+    async addBalance(userId: string, strategyId: number, amount: number) {
+        const strategy = await this.getUserStrategyByIdOrThrow(
+            userId,
+            strategyId
+        );
 
         return await portfolioService.addBalance(strategy.portfolio.id, amount);
     }
 
-    async archiveStrategy(strategyId: number) {
-        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+    async archiveStrategy(userId: string, strategyId: number) {
+        const strategy = await this.getUserStrategyByIdOrThrow(
+            userId,
+            strategyId
+        );
 
         if (await StrategyManagerService.getInstance().isRunning(strategyId)) {
             StrategyManagerService.getInstance().stopStrategy(strategyId);

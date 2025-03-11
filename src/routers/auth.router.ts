@@ -1,6 +1,6 @@
 import { Router } from "express";
 import NotImplementedError from "../errors/not-implemented.error";
-import { isAuthenticated } from "./is-authenticated";
+import { isAuthenticated } from "../middlewares/is-authenticated";
 import { validateDto } from "../dto/validate-dto";
 import { SignupDto } from "../dto/requests/auth/signup.dto";
 import { authController } from "../controllers/auth.controller";

@@ -10,8 +10,11 @@ import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { StopStrategyDto } from "../dto/requests/strategy/stop.dto";
 import { GetStrategyByIdPortfolioDto } from "../dto/requests/strategy/get-by-id-portfolio.dto";
+import { isAuthenticated } from "../middlewares/is-authenticated";
 
 const strategyRouter = Router();
+
+strategyRouter.use(isAuthenticated);
 
 strategyRouter.get("/runnable", StrategyController.getRunnableStrategies);
 

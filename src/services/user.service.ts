@@ -1,3 +1,4 @@
+import { Strategy } from "../entities/strategy.entity";
 import { User } from "../entities/user.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
@@ -55,6 +56,12 @@ class UserService {
         user.username = username;
         user.password = password;
         user.salt = salt;
+        return UserService.getRepository().save(user);
+    }
+
+    async addStrategy(uuid: string, strategy: Strategy) {
+        const user = await this.findById(uuid);
+        user.strategies.push(strategy);
         return UserService.getRepository().save(user);
     }
 }

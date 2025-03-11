@@ -47,6 +47,6 @@ export class Strategy {
     @JoinColumn()
     portfolio!: Portfolio;
 
-    @ManyToOne(() => User, (user) => user.strategies)
+    @ManyToOne(() => User, (user) => user.strategies, { eager: true })
     user!: User;
 }

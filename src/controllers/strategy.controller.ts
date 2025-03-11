@@ -12,6 +12,9 @@ import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
 import { StrategyNotActiveError } from "../errors/strategy-not-active.error";
 import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
+import { userService } from "../services/user.service";
+import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
+import { UnauthenticatedError } from "../errors/unauthenticated.error";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -36,8 +39,10 @@ export class StrategyController {
 
     static async getStrategy(req: Request, res: Response, next: NextFunction) {
         try {
-            const id = parseInt(req.params.id);
-            const strategy = await strategyService.getStrategyByIdOrThrow(id);
+            const dto = plainToInstance(GetStrategyByIdDto, req.params);
+            const strategy = await strategyService.getStrategyByIdOrThrow(
+                dto.id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy retrieved", 200, strategy)
@@ -53,7 +58,13 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
-            const strategies = await strategyService.getStrategies();
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
+            const strategies = await strategyService.getUserStrategies(
+                req.session.user.user.id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>(
@@ -73,6 +84,10 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto: CreateStrategyDto = plainToInstance(
                 CreateStrategyDto,
                 req.body
@@ -87,6 +102,8 @@ export class StrategyController {
                 dto.interval,
                 dto.balance
             );
+
+            await userService.addStrategy(req.session.user.user.id, strategy);
 
             sendResponse(
                 res,
@@ -167,8 +184,15 @@ export class StrategyController {
 
     static async getPortfolio(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const id = parseInt(req.params.id);
-            const portfolio = await strategyService.getPortfolioForStrategy(id);
+            const portfolio = await strategyService.getPortfolioForStrategy(
+                req.session.user.user.id,
+                id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto("Portfolio retrieved", 200, portfolio)
@@ -180,12 +204,17 @@ export class StrategyController {
 
     static async addBalance(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto: AddBalanceStrategyDto = plainToInstance(
                 AddBalanceStrategyDto,
                 req.body
             );
 
             const portfolio = await strategyService.addBalance(
+                req.session.user.user.id,
                 dto.id,
                 dto.amount
             );
@@ -218,9 +247,16 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto = plainToInstance(ArchiveStrategyDto, req.params);
 
-            const strategy = await strategyService.archiveStrategy(dto.id);
+            const strategy = await strategyService.archiveStrategy(
+                req.session.user.user.id,
+                dto.id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy archived", 200, strategy)
