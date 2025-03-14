@@ -5,11 +5,11 @@ meta {
 }
 
 get {
-  url: {{host}}/strategy/created?includeArchived=true
+  url: {{host}}/strategy/created?isActive=true
   body: none
   auth: none
 }
 
 params:query {
-  includeArchived: true
+  isActive: true
 }
