@@ -37,7 +37,7 @@ export abstract class TradingStrategy implements ITradingStrategy {
     }
 
     getPortfolio() {
-        return strategyService.getPortfolioForStrategy(
+        return strategyService.getPortfolioForUserStrategy(
             this.strategy.user.id,
             this.strategy.id
         );
