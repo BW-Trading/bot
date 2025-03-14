@@ -11,6 +11,7 @@ import { ITradingStrategy } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";
 import { portfolioService } from "./portfolio.service";
 import { StrategyManagerService } from "./strategy-manager.service";
+import { userService } from "./user.service";
 
 class StrategyService {
     private strategyRepository =
@@ -38,6 +39,7 @@ class StrategyService {
     }
 
     async createStrategy(
+        userId: string,
         name: string,
         description: string,
         asset: TradeableAssetEnum,
@@ -46,7 +48,7 @@ class StrategyService {
         interval: number,
         balance?: number
     ) {
-        const existingStrategy = await this.getStrategyByName(name);
+        const existingStrategy = await this.getUserStrategyByName(userId, name);
 
         if (existingStrategy) {
             throw new AlreadyExistsError(
@@ -72,12 +74,33 @@ class StrategyService {
         strategy.interval = interval;
         const portfolio = await portfolioService.createPortfolio(balance || 0);
         strategy.portfolio = portfolio;
+        strategy.user = await userService.findById(userId);
 
         return this.strategyRepository.save(strategy);
     }
 
     getStrategyByName(name: string) {
         return this.strategyRepository.findOneBy({ name });
+    }
+
+    getUserStrategyByName(userId: string, name: string) {
+        return this.strategyRepository.findOneBy({
+            name,
+            user: { id: userId },
+        });
+    }
+
+    async getUserStrategyByIdOrThrow(userId: string, id: number) {
+        const strategy = await this.strategyRepository.findOne({
+            where: { id: id, user: { id: userId } },
+            relations: ["portfolio", "user"],
+        });
+
+        if (!strategy) {
+            throw new NotFoundError("Strategy", "Strategy not found", "id");
+        }
+
+        return strategy;
     }
 
     async getStrategyByIdOrThrow(id: number) {
@@ -93,15 +116,36 @@ class StrategyService {
         return strategy;
     }
 
-    getStrategies(isActive: boolean = true) {
-        return this.strategyRepository.find({
+    async getStrategies(isActive: boolean = true) {
+        return await this.strategyRepository.find({
             where: { isActive: isActive },
         });
     }
 
-    async getOrdersForStrategy(strategyId: number) {
+    async getUserStrategies(userId: string, isActive: boolean = true) {
+        const strategies = await this.strategyRepository.find({
+            where: {
+                isActive: isActive,
+                user: { id: userId },
+            },
+        });
+
+        return strategies;
+    }
+
+    async getUserStrategy(userId: string, strategyId: number) {
+        return this.strategyRepository.findOne({
+            where: {
+                id: strategyId,
+                user: { id: userId },
+            },
+            relations: ["user"],
+        });
+    }
+
+    async getOrdersForUserStrategy(userId: string, strategyId: number) {
         const orders = await this.strategyRepository.findOne({
-            where: { id: strategyId },
+            where: { id: strategyId, user: { id: userId } },
             relations: {
                 executions: {
                     resultingMarketActions: true,
@@ -116,8 +160,11 @@ class StrategyService {
         return orders.executions.flatMap((exec) => exec.resultingMarketActions);
     }
 
-    async getPortfolioForStrategy(strategyId: number) {
-        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+    async getPortfolioForUserStrategy(userId: string, strategyId: number) {
+        const strategy = await this.getUserStrategyByIdOrThrow(
+            userId,
+            strategyId
+        );
 
         return strategy.portfolio;
     }
@@ -134,14 +181,20 @@ class StrategyService {
         return portfolioService.sellAsset(strategy.portfolio.id, price, amount);
     }
 
-    async addBalance(strategyId: number, amount: number) {
-        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+    async addBalance(userId: string, strategyId: number, amount: number) {
+        const strategy = await this.getUserStrategyByIdOrThrow(
+            userId,
+            strategyId
+        );
 
         return await portfolioService.addBalance(strategy.portfolio.id, amount);
     }
 
-    async archiveStrategy(strategyId: number) {
-        const strategy = await this.getStrategyByIdOrThrow(strategyId);
+    async archiveStrategy(userId: string, strategyId: number) {
+        const strategy = await this.getUserStrategyByIdOrThrow(
+            userId,
+            strategyId
+        );
 
         if (await StrategyManagerService.getInstance().isRunning(strategyId)) {
             StrategyManagerService.getInstance().stopStrategy(strategyId);

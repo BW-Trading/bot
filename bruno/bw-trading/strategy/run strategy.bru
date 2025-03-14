@@ -5,9 +5,13 @@ meta {
 }
 
 post {
-  url: {{host}}/strategy/run/1
+  url: {{host}}/strategy/run/:id
   body: json
   auth: none
+}
+
+params:path {
+  id: 13
 }
 
 body:json {

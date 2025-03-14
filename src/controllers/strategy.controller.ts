@@ -12,6 +12,9 @@ import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
 import { StrategyNotActiveError } from "../errors/strategy-not-active.error";
 import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
+import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
+import { UnauthenticatedError } from "../errors/unauthenticated.error";
+import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -36,8 +39,10 @@ export class StrategyController {
 
     static async getStrategy(req: Request, res: Response, next: NextFunction) {
         try {
-            const id = parseInt(req.params.id);
-            const strategy = await strategyService.getStrategyByIdOrThrow(id);
+            const dto = plainToInstance(GetStrategyByIdDto, req.params);
+            const strategy = await strategyService.getStrategyByIdOrThrow(
+                dto.id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy retrieved", 200, strategy)
@@ -53,7 +58,20 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
-            const strategies = await strategyService.getStrategies();
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
+            const dto: CreatedStrategyDto = plainToInstance(
+                CreatedStrategyDto,
+                req.query
+            );
+
+            const strategies = await strategyService.getUserStrategies(
+                req.session.user.user.id,
+                dto.isActive
+            );
+
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>(
@@ -73,12 +91,17 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto: CreateStrategyDto = plainToInstance(
                 CreateStrategyDto,
                 req.body
             );
 
             const strategy = await strategyService.createStrategy(
+                req.session.user.user.id,
                 dto.name,
                 dto.description,
                 dto.asset,
@@ -99,8 +122,14 @@ export class StrategyController {
 
     static async runStrategy(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto = plainToInstance(RunStrategyDto, req.params);
-            const strategy = await strategyService.getStrategyByIdOrThrow(
+
+            const strategy = await strategyService.getUserStrategyByIdOrThrow(
+                req.session.user.user.id,
                 dto.id
             );
 
@@ -108,7 +137,10 @@ export class StrategyController {
                 throw new StrategyNotActiveError(strategy.id);
             }
 
-            StrategyManagerService.getInstance().startStrategy(strategy);
+            StrategyManagerService.getInstance().startStrategy(
+                strategy,
+                req.session.user.user.id
+            );
             sendResponse(res, new ResponseOkDto("Strategy started", 200));
         } catch (error) {
             next(error);
@@ -117,13 +149,20 @@ export class StrategyController {
 
     static async runOnce(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto = plainToInstance(RunStrategyOnceDto, req.params);
-            const strategy = await strategyService.getStrategyByIdOrThrow(
+            const strategy = await strategyService.getUserStrategyByIdOrThrow(
+                req.session.user.user.id,
                 dto.id
             );
+
             if (!strategy.isActive) {
                 throw new StrategyNotActiveError(strategy.id);
             }
+
             StrategyManagerService.getInstance().runOnce(strategy);
             sendResponse(res, new ResponseOkDto("Strategy executed", 200));
         } catch (error) {
@@ -137,8 +176,15 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const runningStrategies =
-                StrategyManagerService.getInstance().getRunningStrategies();
+                StrategyManagerService.getInstance().getRunningStrategies(
+                    req.session.user.user.id
+                );
+
             sendResponse(
                 res,
                 new ResponseOkDto(
@@ -154,8 +200,15 @@ export class StrategyController {
 
     static async getOrders(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const id = parseInt(req.params.id);
-            const orders = await strategyService.getOrdersForStrategy(id);
+            const orders = await strategyService.getOrdersForUserStrategy(
+                req.session.user.user.id,
+                id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto("Orders retrieved", 200, orders)
@@ -167,8 +220,15 @@ export class StrategyController {
 
     static async getPortfolio(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const id = parseInt(req.params.id);
-            const portfolio = await strategyService.getPortfolioForStrategy(id);
+            const portfolio = await strategyService.getPortfolioForUserStrategy(
+                req.session.user.user.id,
+                id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto("Portfolio retrieved", 200, portfolio)
@@ -180,12 +240,17 @@ export class StrategyController {
 
     static async addBalance(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto: AddBalanceStrategyDto = plainToInstance(
                 AddBalanceStrategyDto,
                 req.body
             );
 
             const portfolio = await strategyService.addBalance(
+                req.session.user.user.id,
                 dto.id,
                 dto.amount
             );
@@ -201,8 +266,13 @@ export class StrategyController {
 
     static async stopStrategy(req: Request, res: Response, next: NextFunction) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto = plainToInstance(RunStrategyDto, req.params);
-            const strategy = await strategyService.getStrategyByIdOrThrow(
+            const strategy = await strategyService.getUserStrategyByIdOrThrow(
+                req.session.user.user.id,
                 dto.id
             );
             StrategyManagerService.getInstance().stopStrategy(strategy.id);
@@ -218,9 +288,16 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
             const dto = plainToInstance(ArchiveStrategyDto, req.params);
 
-            const strategy = await strategyService.archiveStrategy(dto.id);
+            const strategy = await strategyService.archiveStrategy(
+                req.session.user.user.id,
+                dto.id
+            );
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy archived", 200, strategy)

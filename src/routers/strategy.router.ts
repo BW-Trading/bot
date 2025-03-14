@@ -10,12 +10,20 @@ import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { StopStrategyDto } from "../dto/requests/strategy/stop.dto";
 import { GetStrategyByIdPortfolioDto } from "../dto/requests/strategy/get-by-id-portfolio.dto";
+import { isAuthenticated } from "../middlewares/is-authenticated";
+import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
 
 const strategyRouter = Router();
 
+strategyRouter.use(isAuthenticated);
+
 strategyRouter.get("/runnable", StrategyController.getRunnableStrategies);
 
-strategyRouter.get("/created", StrategyController.getStrategies);
+strategyRouter.get(
+    "/created",
+    validateDto(CreatedStrategyDto, ValidationType.QUERY),
+    StrategyController.getStrategies
+);
 
 strategyRouter.post(
     "/",

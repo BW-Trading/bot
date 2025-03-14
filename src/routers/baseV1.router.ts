@@ -1,8 +1,11 @@
 import { Router } from "express";
 import strategyRouter from "./strategy.router";
 import MarketDataRouter from "./market-data.router";
+import authRouter from "./auth.router";
 
 const baseV1Router = Router();
+
+baseV1Router.use("/auth", authRouter);
 
 baseV1Router.use("/strategy", strategyRouter);
 

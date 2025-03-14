@@ -6,8 +6,12 @@ import { OrderBookDto } from "../dto/requests/market-data/order-book.dto";
 import { TickerPriceDto } from "../dto/requests/market-data/ticker-price.dto";
 import { HistoryChartDto } from "../dto/requests/market-data/history-chart.dto";
 import { HistoryDto } from "../dto/requests/market-data/history.dto";
+import strategyRouter from "./strategy.router";
+import { isAuthenticated } from "../middlewares/is-authenticated";
 
 const marketDataRouter = Router();
+
+strategyRouter.use(isAuthenticated);
 
 marketDataRouter.get(
     "/ticker-price",
