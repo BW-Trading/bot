@@ -12,6 +12,7 @@ import { StrategyExecution } from "../entities/strategy-execution.entity";
 interface StrategyInstance {
     instance: ITradingStrategy;
     intervalId: NodeJS.Timeout;
+    userId: string;
 }
 
 export class StrategyManagerService {
@@ -29,16 +30,6 @@ export class StrategyManagerService {
 
     async isRunning(strategyId: number) {
         return this.strategies.has(strategyId);
-    }
-
-    async loadAllStrategies() {
-        const strategies = await strategyService.getStrategies();
-
-        strategies.forEach(async (strategy) => {
-            await this.startStrategy(strategy);
-        });
-
-        logger.info(`${strategies.length} active strategies loaded`);
     }
 
     async runOnce(strategy: Strategy) {
@@ -84,7 +75,7 @@ export class StrategyManagerService {
         }
     }
 
-    async startStrategy(strategy: Strategy) {
+    async startStrategy(strategy: Strategy, userId: string) {
         if (this.strategies.has(strategy.id)) {
             logger.warn(`Strategy ${strategy.id} is already running`);
         }
@@ -142,6 +133,7 @@ export class StrategyManagerService {
         this.strategies.set(strategy.id, {
             instance: strategyInstance,
             intervalId,
+            userId: userId,
         });
         return intervalId;
     }
@@ -165,8 +157,10 @@ export class StrategyManagerService {
         this.strategies.clear();
     }
 
-    getRunningStrategies(): ITradingStrategy[] {
-        return Array.from(this.strategies.values()).map((s) => s.instance);
+    getRunningStrategies(userId: string): ITradingStrategy[] {
+        return Array.from(this.strategies.values())
+            .filter((strategyInstance) => strategyInstance.userId === userId)
+            .map((strategyInstance) => strategyInstance.instance);
     }
 
     async executeSaveMarketActions(

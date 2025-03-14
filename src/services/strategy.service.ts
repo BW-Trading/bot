@@ -11,6 +11,7 @@ import { ITradingStrategy } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";
 import { portfolioService } from "./portfolio.service";
 import { StrategyManagerService } from "./strategy-manager.service";
+import { userService } from "./user.service";
 
 class StrategyService {
     private strategyRepository =
@@ -38,6 +39,7 @@ class StrategyService {
     }
 
     async createStrategy(
+        userId: string,
         name: string,
         description: string,
         asset: TradeableAssetEnum,
@@ -46,7 +48,7 @@ class StrategyService {
         interval: number,
         balance?: number
     ) {
-        const existingStrategy = await this.getStrategyByName(name);
+        const existingStrategy = await this.getUserStrategyByName(userId, name);
 
         if (existingStrategy) {
             throw new AlreadyExistsError(
@@ -72,12 +74,20 @@ class StrategyService {
         strategy.interval = interval;
         const portfolio = await portfolioService.createPortfolio(balance || 0);
         strategy.portfolio = portfolio;
+        strategy.user = await userService.findById(userId);
 
         return this.strategyRepository.save(strategy);
     }
 
     getStrategyByName(name: string) {
         return this.strategyRepository.findOneBy({ name });
+    }
+
+    getUserStrategyByName(userId: string, name: string) {
+        return this.strategyRepository.findOneBy({
+            name,
+            user: { id: userId },
+        });
     }
 
     async getUserStrategyByIdOrThrow(userId: string, id: number) {
@@ -118,7 +128,6 @@ class StrategyService {
                 isActive: isActive,
                 user: { id: userId },
             },
-            relations: ["user"],
         });
 
         return strategies;
@@ -134,9 +143,9 @@ class StrategyService {
         });
     }
 
-    async getOrdersForStrategy(strategyId: number) {
+    async getOrdersForUserStrategy(userId: string, strategyId: number) {
         const orders = await this.strategyRepository.findOne({
-            where: { id: strategyId },
+            where: { id: strategyId, user: { id: userId } },
             relations: {
                 executions: {
                     resultingMarketActions: true,
@@ -151,7 +160,7 @@ class StrategyService {
         return orders.executions.flatMap((exec) => exec.resultingMarketActions);
     }
 
-    async getPortfolioForStrategy(userId: string, strategyId: number) {
+    async getPortfolioForUserStrategy(userId: string, strategyId: number) {
         const strategy = await this.getUserStrategyByIdOrThrow(
             userId,
             strategyId

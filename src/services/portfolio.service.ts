@@ -12,6 +12,8 @@ class PortfolioService {
         portfolio.availableBalance = balance || 0;
         portfolio.totalBalance = balance || 0;
         portfolio.reservedBalance = 0;
+        portfolio.amount = 0;
+        portfolio.inputBalance = balance || 0;
 
         return this.portflioRepository.save(portfolio);
     }

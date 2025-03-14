@@ -1,3 +1,4 @@
+import { CleanObject } from "../../entities/clean-object";
 import { PaginatedDataDto } from "./paginated-data.dto";
 import { ResponseDTO } from "./response.dto";
 
@@ -36,6 +37,15 @@ export class ResponseOkDto<
     }
 
     toJson(): Record<string, any> {
+        if (this.data instanceof CleanObject) {
+            return {
+                data: this.data.toJson(),
+                message: this.message,
+                success: this.success,
+                code: this.code,
+            };
+        }
+
         return {
             data: this.data,
             message: this.message,
