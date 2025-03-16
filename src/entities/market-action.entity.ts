@@ -4,24 +4,27 @@ import {
     Entity,
     ManyToOne,
     PrimaryGeneratedColumn,
+    UpdateDateColumn,
 } from "typeorm";
 import { MarketActionEnum } from "./enums/market-action.enum";
-import { StrategyExecution } from "./strategy-execution.entity";
 import { MarketActionStatusEnum } from "./enums/market-action-status.enum";
 import { DecimalTransformer } from "../utils/decimal-transformer";
+import { Strategy } from "./strategy.entity";
 
 @Entity()
 export class MarketAction {
     constructor(
+        strategy: Strategy,
         action: MarketActionEnum,
-        price: number,
         amount: number,
-        exchangeOrderId?: string
+        stopLoss?: number,
+        takeProfit?: number
     ) {
+        this.strategy = strategy;
         this.amount = amount;
         this.action = action;
-        this.price = price;
-        this.exchangeOrderId = exchangeOrderId || undefined;
+        this.stopLoss = stopLoss || undefined;
+        this.takeProfit = takeProfit || undefined;
     }
 
     @PrimaryGeneratedColumn()
@@ -34,38 +37,96 @@ export class MarketAction {
         precision: 16,
         scale: 8,
         transformer: DecimalTransformer,
+        nullable: true,
     })
-    price!: number;
+    price?: number;
 
     @Column("decimal", {
         precision: 16,
         scale: 8,
         transformer: DecimalTransformer,
+        nullable: true,
+    })
+    sellPrice?: number;
+
+    @Column("decimal", {
+        precision: 16,
+        scale: 8,
+        transformer: DecimalTransformer,
+        default: 0,
     })
     amount!: number;
 
-    @CreateDateColumn()
-    createdAt!: Date;
+    @Column({ nullable: true })
+    buyOrderId?: string;
 
     @Column({ nullable: true })
-    exchangeOrderId?: string;
-
-    @ManyToOne(
-        () => StrategyExecution,
-        (strategyExecution) => strategyExecution.resultingMarketActions
-    )
-    strategyExecution!: StrategyExecution;
+    sellOrderId?: string;
 
     @Column({
         type: "enum",
         enum: MarketActionStatusEnum,
-        default: MarketActionStatusEnum.PENDING,
+        default: MarketActionStatusEnum.OPEN,
     })
     status!: MarketActionStatusEnum;
+
+    @Column({
+        type: "decimal",
+        precision: 18,
+        scale: 8,
+        transformer: DecimalTransformer,
+        nullable: true,
+    })
+    stopLoss?: number;
+
+    @Column({
+        type: "decimal",
+        precision: 18,
+        scale: 8,
+        transformer: DecimalTransformer,
+        nullable: true,
+    })
+    takeProfit?: number;
 
     @Column({ nullable: true })
     failedAt?: Date;
 
     @Column({ nullable: true })
     failedReason?: string;
+
+    @CreateDateColumn()
+    createdAt!: Date;
+
+    @UpdateDateColumn()
+    updatedAt!: Date;
+
+    @Column({ nullable: true })
+    closedAt?: Date;
+
+    @ManyToOne(() => Strategy, (strategy) => strategy.marketActions)
+    strategy!: Strategy;
+
+    shouldStopLoss(currentPrice: number) {
+        if (
+            this.stopLoss &&
+            currentPrice <= this.stopLoss &&
+            this.status === MarketActionStatusEnum.OPEN
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    shouldTakeProfit(currentPrice: number) {
+        if (
+            this.takeProfit &&
+            currentPrice >= this.takeProfit &&
+            this.status === MarketActionStatusEnum.OPEN
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }

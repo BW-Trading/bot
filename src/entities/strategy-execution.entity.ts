@@ -1,13 +1,7 @@
-import {
-    Column,
-    Entity,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-} from "typeorm";
-import { MarketAction } from "./market-action.entity";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { StrategyExecutionStatusEnum } from "./enums/strategy-execution-status.enum";
 import { Strategy } from "./strategy.entity";
+import { StrategyResult } from "../strategies/trading-strategy.interface";
 
 @Entity()
 export class StrategyExecution {
@@ -16,12 +10,6 @@ export class StrategyExecution {
 
     @Column({ type: "enum", enum: StrategyExecutionStatusEnum })
     status!: StrategyExecutionStatusEnum;
-
-    @OneToMany(
-        () => MarketAction,
-        (marketAction) => marketAction.strategyExecution
-    )
-    resultingMarketActions?: MarketAction[];
 
     @Column({ nullable: true })
     error?: string;
@@ -37,4 +25,7 @@ export class StrategyExecution {
 
     @ManyToOne(() => Strategy, (strategy) => strategy.executions)
     strategy!: Strategy;
+
+    @Column({ type: "json", nullable: true })
+    strategyResult?: StrategyResult;
 }

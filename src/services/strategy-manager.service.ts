@@ -1,4 +1,7 @@
-import { ITradingStrategy } from "../strategies/trading-strategy.interface";
+import {
+    ITradingStrategy,
+    StrategyResult,
+} from "../strategies/trading-strategy.interface";
 import { NotFoundError } from "../errors/not-found-error";
 import { logger } from "../loggers/logger";
 import { strategyService } from "./strategy.service";
@@ -6,8 +9,6 @@ import { Strategy } from "../entities/strategy.entity";
 import { strategyExecutionService } from "./strategy-execution.service";
 import { marketActionService } from "./market-action.service";
 import { MarketAction } from "../entities/market-action.entity";
-import { MarketActionEnum } from "../entities/enums/market-action.enum";
-import { StrategyExecution } from "../entities/strategy-execution.entity";
 
 interface StrategyInstance {
     instance: ITradingStrategy;
@@ -56,19 +57,13 @@ export class StrategyManagerService {
                 currentExecution
             );
 
-            const resultingMarketActions = await strategyInstance.run();
+            const strategyResult = await strategyInstance.run();
 
-            await this.executeSaveMarketActions(
-                strategy,
-                execution,
-                resultingMarketActions
-            );
+            await this.computeStrategyResult(strategyResult);
 
-            await strategyExecutionService.complete(
-                execution,
-                resultingMarketActions
-            );
+            await strategyExecutionService.complete(execution, strategyResult);
         } catch (error: any) {
+            console.log(error);
             await strategyExecutionService.fail(currentExecution, error);
         } finally {
             strategyInstance.stop();
@@ -111,17 +106,13 @@ export class StrategyManagerService {
                     currentExecution
                 );
 
-                const resultingMarketActions = await strategyInstance.run();
+                const strategyResult = await strategyInstance.run();
 
-                await this.executeSaveMarketActions(
-                    strategy,
-                    execution,
-                    resultingMarketActions
-                );
+                await this.computeStrategyResult(strategyResult);
 
                 await strategyExecutionService.complete(
                     execution,
-                    resultingMarketActions
+                    strategyResult
                 );
             } catch (error: any) {
                 await strategyExecutionService.fail(currentExecution, error);
@@ -163,41 +154,15 @@ export class StrategyManagerService {
             .map((strategyInstance) => strategyInstance.instance);
     }
 
-    async executeSaveMarketActions(
-        strategy: Strategy,
-        execution: StrategyExecution,
-        marketActions: any[]
-    ) {
-        marketActions.forEach(async (action: MarketAction) => {
+    async computeStrategyResult(strategyResult: StrategyResult) {
+        strategyResult.marketActions.forEach(async (action: MarketAction) => {
             try {
-                switch (action.action) {
-                    case MarketActionEnum.BUY:
-                        await strategyService.buyAsset(
-                            strategy.id,
-                            action.price,
-                            action.amount
-                        );
-                        break;
-                    case MarketActionEnum.SELL:
-                        await strategyService.sellAsset(
-                            strategy.id,
-                            action.price,
-                            action.amount
-                        );
-                        break;
-                    case MarketActionEnum.HOLD:
-                        break;
-                    default:
-                        logger.error(`Unknown action ${action.action}`);
-                        break;
-                }
-
-                await marketActionService.executed(action);
+                await marketActionService.execute(
+                    action,
+                    strategyResult.currentPrice
+                );
             } catch (error: any) {
                 await marketActionService.fail(action, error.message);
-            } finally {
-                action.strategyExecution = execution;
-                await marketActionService.save(marketActions);
             }
         });
     }

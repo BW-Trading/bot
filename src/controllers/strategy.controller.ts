@@ -15,6 +15,7 @@ import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
+import { marketActionService } from "../services/market-action.service";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -205,7 +206,7 @@ export class StrategyController {
             }
 
             const id = parseInt(req.params.id);
-            const orders = await strategyService.getOrdersForUserStrategy(
+            const orders = await marketActionService.getMarketActionsForUserStrategy(
                 req.session.user.user.id,
                 id
             );

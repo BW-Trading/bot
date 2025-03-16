@@ -1,7 +1,7 @@
 import { StrategyExecutionStatusEnum } from "../entities/enums/strategy-execution-status.enum";
-import { MarketAction } from "../entities/market-action.entity";
 import { StrategyExecution } from "../entities/strategy-execution.entity";
 import { Strategy } from "../entities/strategy.entity";
+import { StrategyResult } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";
 
 class StrategyExecutionService {
@@ -22,12 +22,9 @@ class StrategyExecutionService {
         return this.strategyExecutionRepository.save(execution);
     }
 
-    complete(
-        execution: StrategyExecution,
-        resultingMarketActions: MarketAction[]
-    ) {
+    complete(execution: StrategyExecution, strategyResult: StrategyResult) {
         execution.status = StrategyExecutionStatusEnum.COMPLETED;
-        execution.resultingMarketActions = resultingMarketActions;
+        execution.strategyResult = strategyResult;
         execution.completedAt = new Date();
         return this.strategyExecutionRepository.save(execution);
     }

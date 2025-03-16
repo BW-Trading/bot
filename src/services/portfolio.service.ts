@@ -4,7 +4,7 @@ import { PortfolioOperationError } from "../errors/portfolio-operation.error";
 import DatabaseManager from "./database-manager.service";
 
 class PortfolioService {
-    private portflioRepository =
+    private portfolioRepository =
         DatabaseManager.getInstance().appDataSource.getRepository(Portfolio);
 
     createPortfolio(balance?: number) {
@@ -15,11 +15,11 @@ class PortfolioService {
         portfolio.amount = 0;
         portfolio.inputBalance = balance || 0;
 
-        return this.portflioRepository.save(portfolio);
+        return this.portfolioRepository.save(portfolio);
     }
 
     async buyAsset(portfolioId: number, price: number, amount: number) {
-        const portfolio = await this.portflioRepository.findOneBy({
+        const portfolio = await this.portfolioRepository.findOneBy({
             id: portfolioId,
         });
 
@@ -40,11 +40,15 @@ class PortfolioService {
         portfolio.availableBalance -= price * amount;
         portfolio.reservedBalance += price * amount;
 
-        return this.portflioRepository.save(portfolio);
+        await this.portfolioRepository.save(portfolio);
+
+        // Simulate exchange order id
+        const exchangeOrderId = Math.floor(Math.random() * 1000000);
+        return exchangeOrderId + "";
     }
 
     async sellAsset(portfolioId: number, price: number, amount: number) {
-        const portfolio = await this.portflioRepository.findOneBy({
+        const portfolio = await this.portfolioRepository.findOneBy({
             id: portfolioId,
         });
 
@@ -70,11 +74,15 @@ class PortfolioService {
         portfolio.availableBalance = newAvailableBalance;
         portfolio.totalBalance = newReservedBalance + newAvailableBalance;
 
-        return this.portflioRepository.save(portfolio);
+        await this.portfolioRepository.save(portfolio);
+
+        // Simulate exchange order id
+        const exchangeOrderId = Math.floor(Math.random() * 1000000);
+        return exchangeOrderId + "";
     }
 
     async addBalance(portfolioId: number, amount: number) {
-        const portfolio = await this.portflioRepository.findOneBy({
+        const portfolio = await this.portfolioRepository.findOneBy({
             id: portfolioId,
         });
 
@@ -85,7 +93,31 @@ class PortfolioService {
         portfolio.availableBalance = portfolio.availableBalance + amount;
         portfolio.inputBalance += amount;
 
-        return this.portflioRepository.save(portfolio);
+        return this.portfolioRepository.save(portfolio);
+    }
+
+    async removeBalance(portfolioId: number, amount: number) {
+        const portfolio = await this.portfolioRepository.findOneBy({
+            id: portfolioId,
+        });
+
+        if (!portfolio) {
+            throw new NotFoundError("Portfolio", "Portfolio not found", "id");
+        }
+
+        if (portfolio.availableBalance < amount) {
+            throw new PortfolioOperationError(
+                "Insufficient balance to remove",
+                "REMOVE",
+                amount
+            );
+        }
+
+        portfolio.totalBalance = portfolio.totalBalance - amount;
+        portfolio.availableBalance = portfolio.availableBalance - amount;
+        portfolio.inputBalance -= amount;
+
+        return this.portfolioRepository.save(portfolio);
     }
 }
 

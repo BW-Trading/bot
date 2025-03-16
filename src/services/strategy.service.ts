@@ -4,7 +4,6 @@ import { Strategy } from "../entities/strategy.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
 import { StrategyConfigValidationError } from "../errors/strategy-config-validation.error";
-import { MovingAverageStrategy } from "../strategies/moving-average-strategy";
 import { StrategiesEnum } from "../entities/enums/strategies.enum";
 import { TestStrategy } from "../strategies/test-strategy";
 import { ITradingStrategy } from "../strategies/trading-strategy.interface";
@@ -27,8 +26,8 @@ class StrategyService {
         switch (strategy) {
             case StrategiesEnum.TEST:
                 return TestStrategy;
-            case StrategiesEnum.MOVING_AVERAGE:
-                return MovingAverageStrategy;
+            // case StrategiesEnum.MOVING_AVERAGE:
+            //     return MovingAverageStrategy;
             default:
                 throw new NotFoundError(
                     "Strategy",
@@ -143,23 +142,6 @@ class StrategyService {
         });
     }
 
-    async getOrdersForUserStrategy(userId: string, strategyId: number) {
-        const orders = await this.strategyRepository.findOne({
-            where: { id: strategyId, user: { id: userId } },
-            relations: {
-                executions: {
-                    resultingMarketActions: true,
-                },
-            },
-        });
-
-        if (!orders) {
-            throw new NotFoundError("Strategy", "Strategy not found", "id");
-        }
-
-        return orders.executions.flatMap((exec) => exec.resultingMarketActions);
-    }
-
     async getPortfolioForUserStrategy(userId: string, strategyId: number) {
         const strategy = await this.getUserStrategyByIdOrThrow(
             userId,
@@ -188,6 +170,18 @@ class StrategyService {
         );
 
         return await portfolioService.addBalance(strategy.portfolio.id, amount);
+    }
+
+    async removeBalance(userId: string, strategyId: number, amount: number) {
+        const strategy = await this.getUserStrategyByIdOrThrow(
+            userId,
+            strategyId
+        );
+
+        return await portfolioService.removeBalance(
+            strategy.portfolio.id,
+            amount
+        );
     }
 
     async archiveStrategy(userId: string, strategyId: number) {
