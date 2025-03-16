@@ -26,7 +26,7 @@ class StrategyService {
         switch (strategy) {
             case StrategiesEnum.TEST:
                 return TestStrategy;
-            // case StrategiesEnum.MOVING_AVERAGE:
+            // case StrategiesEnum.MOVING_AVERAGE: // TODO: update after refactoring
             //     return MovingAverageStrategy;
             default:
                 throw new NotFoundError(
