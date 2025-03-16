@@ -8,6 +8,24 @@ import { TradingStrategy } from "./trading-strategy";
 import { IsNumber, ValidationError } from "class-validator";
 
 /**
+ *
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
+ *
+ */
+
+/**
  * Stratégie de trading basée sur les moyennes mobiles
  * - Acheter lorsque la moyenne mobile courte passe en dessous de la moyenne mobile longue de plus de thresholdBuy%
  * - Vendre lorsque la moyenne mobile courte croise la moyenne mobile longue par le bas de plus de thresholdSell%

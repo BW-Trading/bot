@@ -16,6 +16,7 @@ import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
 import { marketActionService } from "../services/market-action.service";
+import { MarketActionStatusEnum } from "../entities/enums/market-action-status.enum";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -206,13 +207,25 @@ export class StrategyController {
             }
 
             const id = parseInt(req.params.id);
-            const orders = await marketActionService.getMarketActionsForUserStrategy(
-                req.session.user.user.id,
-                id
-            );
+            const openOrders =
+                await marketActionService.getMarketActionsForUserStrategy(
+                    req.session.user.user.id,
+                    id
+                );
+
+            const closedOrders =
+                await marketActionService.getMarketActionsForUserStrategy(
+                    req.session.user.user.id,
+                    id,
+                    MarketActionStatusEnum.CLOSED
+                );
+
             sendResponse(
                 res,
-                new ResponseOkDto("Orders retrieved", 200, orders)
+                new ResponseOkDto("Orders retrieved", 200, [
+                    ...openOrders,
+                    ...closedOrders,
+                ])
             );
         } catch (error) {
             next(error);

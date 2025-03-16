@@ -12,10 +12,7 @@ export class TestStrategy extends TradingStrategy {
 
     async run(): Promise<StrategyResult> {
         console.log(`Running test strategy ${this.strategy.name}`);
-        const marketActions =
-            await marketActionService.getMarketActionsForStrategy(
-                this.strategy.id
-            );
+        const marketActions = await this.getStrategyOpenMarketActions();
 
         if (!marketActions || marketActions.length === 0) {
             return {
