@@ -10,6 +10,19 @@ class StrategyExecutionService {
             StrategyExecution
         );
 
+    getUserStrategyExecutions(userId: string, strategyId: number) {
+        return this.strategyExecutionRepository.find({
+            where: {
+                strategy: {
+                    id: strategyId,
+                    user: {
+                        id: userId,
+                    },
+                },
+            },
+        });
+    }
+
     create(strategy: Strategy) {
         let execution = new StrategyExecution();
         execution.status = StrategyExecutionStatusEnum.PENDING;

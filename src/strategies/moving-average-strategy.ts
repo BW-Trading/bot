@@ -3,42 +3,39 @@ import { MarketActionEnum } from "../entities/enums/market-action.enum";
 import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { marketDataService } from "../services/market-data.service";
-import { maxBuyableAmount } from "../utils/helpers/buy-sell-helper";
 import { TradingStrategy } from "./trading-strategy";
 import { IsNumber, ValidationError } from "class-validator";
+import { StrategyResult } from "./trading-strategy.interface";
+import { marketActionService } from "../services/market-action.service";
 
 /**
- *
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- * La stratégie n'est plus à jour depuis le refactoring de la gestion des MarketActions
- *
+ * Configuration de la stratégie de moyennes mobiles
+ * - shortPeriod: Période de la moyenne mobile courte (en nombre de bougies)
+ * - longPeriod: Période de la moyenne mobile longue (en nombre de bougies)
+ * - thresholdBuy: Seuil de déclenchement du signal d'achat (en 1/100)
+ * - thresholdSell: Seuil de déclenchement du signal de vente (en 1/100)
+ * - interval: Interval de temps des bougies
  */
+export interface MovingAverageStrategyConfig {
+    shortPeriod: number;
+    longPeriod: number;
+    thresholdBuy: number;
+    thresholdSell: number;
+    interval: IntervalEnum;
+}
+
+export interface MovingAverageStrategyResult extends StrategyResult {
+    lastShortMA: number;
+    lastLongMA: number;
+    holdReason?: string;
+}
 
 /**
  * Stratégie de trading basée sur les moyennes mobiles
  * - Acheter lorsque la moyenne mobile courte passe en dessous de la moyenne mobile longue de plus de thresholdBuy%
  * - Vendre lorsque la moyenne mobile courte croise la moyenne mobile longue par le bas de plus de thresholdSell%
- *
+ * La stratégie gère un seul ordre à la fois pour le moment
  */
-export interface MovingAverageStrategyConfig {
-    shortPeriod: number; // Période de la moyenne mobile courte (en nombre de bougies)
-    longPeriod: number; // Période de la moyenne mobile longue (en nombre de bougies)
-    thresholdBuy: number; // Seuil de déclenchement du signal d'achat (en 1/100)
-    thresholdSell: number; // Seuil de déclenchement du signal de vente (en 1/100)
-    interval: IntervalEnum; // Interval de temps des bougies
-}
-
 export class MovingAverageStrategy extends TradingStrategy {
     constructor(strategy: Strategy) {
         super(strategy);
@@ -180,9 +177,9 @@ export class MovingAverageStrategy extends TradingStrategy {
         return errors;
     }
 
-    async run(): Promise<MarketAction[]> {
+    async run(): Promise<StrategyResult> {
         const config = this.strategy.config as MovingAverageStrategyConfig;
-        let resultingActions: MarketAction[] = [];
+
         // Récupérer les bougies
         const startTime = new Date().getTime() - config.longPeriod * 60 * 1000;
         const endTime = new Date().getTime();
@@ -193,70 +190,60 @@ export class MovingAverageStrategy extends TradingStrategy {
             startTime,
             endTime
         );
-        const currentPrice =
-            longPeriodCandles[longPeriodCandles.length - 1].close;
+
+        const currentPrice = (
+            await marketDataService.getTickerPrice(this.strategy.asset)
+        ).price;
         // Calculer les moyennes mobiles
         const longMovingAverage = this.calculateMovingAverage(
             longPeriodCandles,
             config.longPeriod
         );
 
+        const shortPeriodCandles = longPeriodCandles.slice(-config.shortPeriod);
         const shortMovingAverage = this.calculateMovingAverage(
-            longPeriodCandles,
+            shortPeriodCandles,
             config.shortPeriod
         );
 
-        // Comparer les moyennes mobiles pour déclencher les signaux d'achat et de vente
-        for (let i = 0; i < longMovingAverage.length; i++) {
-            if (
-                shortMovingAverage[i] < longMovingAverage[i] &&
-                shortMovingAverage[i] <
-                    longMovingAverage[i] * (1 - config.thresholdBuy)
-            ) {
-                // Signal d'achat
-                resultingActions.push(
-                    new MarketAction(
-                        MarketActionEnum.BUY,
-                        currentPrice,
-                        maxBuyableAmount(
-                            await this.getPortfolio(),
-                            currentPrice
-                        )
-                    )
-                );
-            } else if (
-                shortMovingAverage[i] > longMovingAverage[i] &&
-                shortMovingAverage[i] >
-                    longMovingAverage[i] * (1 + config.thresholdSell)
-            ) {
-                // Signal de vente
-                resultingActions.push(
-                    new MarketAction(
-                        MarketActionEnum.SELL,
-                        currentPrice,
-                        (await this.getPortfolio()).amount
-                    )
-                );
-            } else {
-                // Pas de signal
-                let noActionMarketAction = new MarketAction(
-                    MarketActionEnum.HOLD,
-                    currentPrice,
-                    0
-                );
-                noActionMarketAction.failedAt = new Date();
-                noActionMarketAction.failedReason = `Short MA: ${
-                    shortMovingAverage[i]
-                }, Long MA: ${longMovingAverage[i]}, Threshold Buy: ${
-                    longMovingAverage[i] * (1 - config.thresholdBuy)
-                }, Threshold Sell: ${
-                    longMovingAverage[i] * (1 + config.thresholdSell)
-                }`;
-                resultingActions.push(noActionMarketAction);
-            }
+        const openOrders = await this.getStrategyOpenMarketActions();
+        // Comparer les moyennes mobiles pour déclencher les signaux d'achat,
+        const lastShortMA = shortMovingAverage[shortMovingAverage.length - 1];
+        const lastLongMA = longMovingAverage[longMovingAverage.length - 1];
+
+        let strategyResult: MovingAverageStrategyResult = {
+            lastShortMA,
+            lastLongMA,
+            currentPrice,
+            marketActions: [],
+        };
+
+        if (
+            openOrders.length == 0 && // Pas d'ordre actif
+            lastShortMA < lastLongMA &&
+            lastShortMA < lastLongMA * (1 - config.thresholdBuy)
+        ) {
+            // Signal d'achat
+            strategyResult.marketActions.push(
+                await marketActionService.create(
+                    this.strategy,
+                    (await this.getPortfolio()).maxBuyableAmount(currentPrice)
+                )
+            );
+        } else if (
+            openOrders.length == 1 && // Un ordre est actif
+            lastShortMA > lastLongMA &&
+            lastShortMA > lastLongMA * (1 + config.thresholdSell)
+        ) {
+            // Signal de vente
+            strategyResult.marketActions.push(openOrders[0]);
+        } else {
+            strategyResult.holdReason = `Short MA: ${lastShortMA}, Long MA: ${lastLongMA}, Threshold Buy: ${
+                lastLongMA * (1 - config.thresholdBuy)
+            }, Threshold Sell: ${lastLongMA * (1 + config.thresholdSell)}`;
         }
 
-        return resultingActions;
+        return strategyResult;
     }
 
     // Calculer la moyenne mobile sur les N dernières bougies

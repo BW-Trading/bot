@@ -11,6 +11,7 @@ import DatabaseManager from "./database-manager.service";
 import { portfolioService } from "./portfolio.service";
 import { StrategyManagerService } from "./strategy-manager.service";
 import { userService } from "./user.service";
+import { MovingAverageStrategy } from "../strategies/moving-average-strategy";
 
 class StrategyService {
     private strategyRepository =
@@ -26,8 +27,8 @@ class StrategyService {
         switch (strategy) {
             case StrategiesEnum.TEST:
                 return TestStrategy;
-            // case StrategiesEnum.MOVING_AVERAGE: // TODO: update after refactoring
-            //     return MovingAverageStrategy;
+            case StrategiesEnum.MOVING_AVERAGE:
+                return MovingAverageStrategy;
             default:
                 throw new NotFoundError(
                     "Strategy",

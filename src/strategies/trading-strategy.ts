@@ -1,5 +1,4 @@
 import { ValidationError } from "class-validator";
-import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { ITradingStrategy, StrategyResult } from "./trading-strategy.interface";
 import { strategyService } from "../services/strategy.service";

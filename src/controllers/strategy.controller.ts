@@ -17,6 +17,8 @@ import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
 import { marketActionService } from "../services/market-action.service";
 import { MarketActionStatusEnum } from "../entities/enums/market-action-status.enum";
+import { GetStrategyExecutionDto } from "../dto/requests/strategy/get-executions.dto";
+import { strategyExecutionService } from "../services/strategy-execution.service";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -315,6 +317,32 @@ export class StrategyController {
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy archived", 200, strategy)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async getExecutions(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
+            const dto = plainToInstance(GetStrategyExecutionDto, req.params);
+            const executions =
+                await strategyExecutionService.getUserStrategyExecutions(
+                    req.session.user.user.id,
+                    dto.id
+                );
+
+            sendResponse(
+                res,
+                new ResponseOkDto("Executions retrieved", 200, executions)
             );
         } catch (error) {
             next(error);
