@@ -34,7 +34,7 @@ jobs:
           script: |
             eval $(ssh-agent -s)
             ssh-add ${{secrets.PRIVATE_KEY_PATH}}
-            cd /home/aiveriwhair/bw-trading
+            cd /home/aiveriwhair/bw-trading-backend
             git pull origin main
             git status
             npm install
