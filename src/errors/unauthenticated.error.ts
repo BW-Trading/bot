@@ -2,9 +2,12 @@ import { CustomError } from "./custom-error";
 import { HttpStatusCode } from "./httpStatusCodeEnum";
 
 export class UnauthenticatedError extends CustomError {
-    constructor(details?: any) {
+    constructor(
+        message: string = "You must be authenticated to perform this action.",
+        details?: any
+    ) {
         super(
-            "You must be authenticated to perform this action.",
+            message,
             HttpStatusCode.UNAUTHENTICATED,
             "UNAUTHENTICATED",
             details

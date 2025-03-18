@@ -7,6 +7,7 @@ import { plainToInstance } from "class-transformer";
 import { LoginDto } from "../dto/requests/auth/login.dto";
 import { SignupDto } from "../dto/requests/auth/signup.dto";
 import { appEnv } from "../utils/env/app-env";
+import { UnauthenticatedError } from "../errors/unauthenticated.error";
 
 declare module "express-session" {
     interface SessionData {
@@ -73,6 +74,18 @@ class AuthController {
                 const responseDto = new ResponseOkDto("Logout successful");
                 sendResponse(res, responseDto);
             });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    isAuthenticated(req: Request, res: Response, next: NextFunction) {
+        try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError("Unauthenticated");
+            }
+
+            sendResponse(res, new ResponseOkDto("Authenticated"));
         } catch (error) {
             next(error);
         }
