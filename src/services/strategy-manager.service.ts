@@ -59,9 +59,8 @@ export class StrategyManagerService {
 
             const strategyResult = await strategyInstance.run();
 
-            await this.computeStrategyResult(strategyResult);
-
             await strategyExecutionService.complete(execution, strategyResult);
+            await this.computeStrategyResult(strategyResult);
         } catch (error: any) {
             console.log(error);
             await strategyExecutionService.fail(currentExecution, error);
@@ -108,12 +107,12 @@ export class StrategyManagerService {
 
                 const strategyResult = await strategyInstance.run();
 
-                await this.computeStrategyResult(strategyResult);
-
                 await strategyExecutionService.complete(
                     execution,
                     strategyResult
                 );
+
+                await this.computeStrategyResult(strategyResult);
             } catch (error: any) {
                 await strategyExecutionService.fail(currentExecution, error);
             } finally {
