@@ -14,6 +14,8 @@ authRouter.post("/login", validateDto(LoginDto), authController.login);
 
 authRouter.get("/logout", isAuthenticated, authController.logout);
 
+authRouter.get("/is-authenticated", authController.isAuthenticated);
+
 authRouter.get("/forgot-password", (req, res) => {
     throw new NotImplementedError();
 });
