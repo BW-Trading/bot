@@ -84,8 +84,12 @@ class AuthController {
             if (!req.session.user) {
                 throw new UnauthenticatedError("Unauthenticated");
             }
-
-            sendResponse(res, new ResponseOkDto("Authenticated"));
+            const responseDto = new ResponseOkDto("Authenticated", 200, {
+                id: req.session.user.user.id,
+                username: req.session.user.user.username,
+                createdAt: req.session.user.user.createdAt,
+            });
+            sendResponse(res, responseDto);
         } catch (error) {
             next(error);
         }
