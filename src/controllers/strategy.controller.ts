@@ -15,6 +15,10 @@ import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
+import { marketActionService } from "../services/market-action.service";
+import { MarketActionStatusEnum } from "../entities/enums/market-action-status.enum";
+import { GetStrategyExecutionDto } from "../dto/requests/strategy/get-executions.dto";
+import { strategyExecutionService } from "../services/strategy-execution.service";
 
 export class StrategyController {
     static getRunnableStrategies(
@@ -205,13 +209,21 @@ export class StrategyController {
             }
 
             const id = parseInt(req.params.id);
-            const orders = await strategyService.getOrdersForUserStrategy(
-                req.session.user.user.id,
-                id
-            );
+            const openOrders =
+                await marketActionService.getMarketActionsForUserStrategy(
+                    req.session.user.user.id,
+                    id,
+                    [
+                        MarketActionStatusEnum.OPEN,
+                        MarketActionStatusEnum.CLOSED,
+                        MarketActionStatusEnum.CANCELLED,
+                        MarketActionStatusEnum.PENDING,
+                    ]
+                );
+
             sendResponse(
                 res,
-                new ResponseOkDto("Orders retrieved", 200, orders)
+                new ResponseOkDto("Orders retrieved", 200, openOrders)
             );
         } catch (error) {
             next(error);
@@ -301,6 +313,32 @@ export class StrategyController {
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy archived", 200, strategy)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static async getExecutions(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            if (!req.session.user) {
+                throw new UnauthenticatedError();
+            }
+
+            const dto = plainToInstance(GetStrategyExecutionDto, req.params);
+            const executions =
+                await strategyExecutionService.getUserStrategyExecutions(
+                    req.session.user.user.id,
+                    dto.id
+                );
+
+            sendResponse(
+                res,
+                new ResponseOkDto("Executions retrieved", 200, executions)
             );
         } catch (error) {
             next(error);

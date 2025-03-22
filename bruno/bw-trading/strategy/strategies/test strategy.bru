@@ -1,0 +1,23 @@
+meta {
+  name: test strategy
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/strategy
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "test strat",
+    "description": "Test",
+    "strategyEnum": "TEST",
+    "config" : {
+    },
+    "interval": 30000,
+    "asset": "BTCUSDT"
+  }
+}

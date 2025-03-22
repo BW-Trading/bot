@@ -1,22 +1,41 @@
 import { ValidationError } from "class-validator";
-import { MarketActionEnum } from "../entities/enums/market-action.enum";
-import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { TradingStrategy } from "./trading-strategy";
+import { StrategyResult } from "./trading-strategy.interface";
+import { marketActionService } from "../services/market-action.service";
 
 export class TestStrategy extends TradingStrategy {
     constructor(strategy: Strategy) {
         super(strategy);
     }
 
-    run(): Promise<MarketAction[]> {
-        return new Promise((resolve) => {
-            console.log(`Running test strategy ${this.strategy.name}`);
-            resolve([new MarketAction(MarketActionEnum.SELL, 1, 2)]);
-        });
+    async run(): Promise<StrategyResult> {
+        console.log(`Running test strategy ${this.strategy.name}`);
+
+        const marketActions = await this.getStrategyOpenMarketActions();
+
+        let result;
+        if (!marketActions || marketActions.length === 0) {
+            result = {
+                marketActions: [
+                    await marketActionService.create(this.strategy, 1, 10000),
+                ],
+                currentPrice: 10000,
+            };
+        } else {
+            const marketAction = marketActions[0];
+            marketAction.toClose(11000);
+
+            result = {
+                marketActions: [marketAction],
+                currentPrice: 11000,
+            };
+        }
+
+        return result;
     }
 
     validateConfig(config: any): ValidationError[] {
-        throw new Error("Method not implemented.");
+        return [];
     }
 }

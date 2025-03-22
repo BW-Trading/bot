@@ -8,11 +8,12 @@ import {
     PrimaryGeneratedColumn,
 } from "typeorm";
 import { StrategiesEnum } from "./enums/strategies.enum";
-import { StrategyExecution } from "./strategy-execution.entity";
 import { Portfolio } from "./portfolio.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 import { User } from "./user.entity";
 import { CleanObject } from "./clean-object";
+import { StrategyExecution } from "./strategy-execution.entity";
+import { MarketAction } from "./market-action.entity";
 
 @Entity()
 export class Strategy extends CleanObject {
@@ -43,6 +44,10 @@ export class Strategy extends CleanObject {
     @OneToMany(() => StrategyExecution, (execution) => execution.strategy)
     @JoinColumn()
     executions!: StrategyExecution[];
+
+    @OneToMany(() => MarketAction, (marketAction) => marketAction.strategy)
+    @JoinColumn()
+    marketActions!: MarketAction[];
 
     @OneToOne(() => Portfolio)
     @JoinColumn()

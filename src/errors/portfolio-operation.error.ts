@@ -6,7 +6,7 @@ export class PortfolioOperationError extends CustomError {
         public message: string,
         public operation: string,
         public amount: number,
-        public price: number
+        public price?: number
     ) {
         super(
             message,
