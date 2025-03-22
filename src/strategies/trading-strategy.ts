@@ -3,6 +3,7 @@ import { Strategy } from "../entities/strategy.entity";
 import { ITradingStrategy, StrategyResult } from "./trading-strategy.interface";
 import { strategyService } from "../services/strategy.service";
 import { marketActionService } from "../services/market-action.service";
+import { MarketActionStatusEnum } from "../entities/enums/market-action-status.enum";
 
 export abstract class TradingStrategy implements ITradingStrategy {
     strategy: Strategy;
@@ -43,9 +44,15 @@ export abstract class TradingStrategy implements ITradingStrategy {
         );
     }
 
-    getStrategyOpenMarketActions() {
+    getStrategyOpenMarketActions(
+        status: MarketActionStatusEnum[] = [
+            MarketActionStatusEnum.OPEN,
+            MarketActionStatusEnum.PENDING,
+        ]
+    ) {
         return marketActionService.getMarketActionsForStrategy(
-            this.strategy.id
+            this.strategy.id,
+            status
         );
     }
 }

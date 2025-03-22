@@ -227,7 +227,8 @@ export class MovingAverageStrategy extends TradingStrategy {
             strategyResult.marketActions.push(
                 await marketActionService.create(
                     this.strategy,
-                    (await this.getPortfolio()).maxBuyableAmount(currentPrice)
+                    (await this.getPortfolio()).maxBuyableAmount(currentPrice),
+                    currentPrice
                 )
             );
         } else if (

@@ -10,6 +10,7 @@ import { MarketActionEnum } from "./enums/market-action.enum";
 import { MarketActionStatusEnum } from "./enums/market-action-status.enum";
 import { DecimalTransformer } from "../utils/decimal-transformer";
 import { Strategy } from "./strategy.entity";
+import { MarketActionError } from "../errors/market-action.error";
 
 @Entity()
 export class MarketAction {
@@ -17,12 +18,14 @@ export class MarketAction {
         strategy: Strategy,
         action: MarketActionEnum,
         amount: number,
+        buyPrice: number,
         stopLoss?: number,
         takeProfit?: number
     ) {
         this.strategy = strategy;
         this.amount = amount;
         this.action = action;
+        this.buyPrice = buyPrice;
         this.stopLoss = stopLoss || undefined;
         this.takeProfit = takeProfit || undefined;
     }
@@ -37,9 +40,8 @@ export class MarketAction {
         precision: 16,
         scale: 8,
         transformer: DecimalTransformer,
-        nullable: true,
     })
-    price?: number;
+    buyPrice!: number;
 
     @Column("decimal", {
         precision: 16,
@@ -89,6 +91,9 @@ export class MarketAction {
     takeProfit?: number;
 
     @Column({ nullable: true })
+    executedAt?: Date;
+
+    @Column({ nullable: true })
     failedAt?: Date;
 
     @Column({ nullable: true })
@@ -105,6 +110,16 @@ export class MarketAction {
 
     @ManyToOne(() => Strategy, (strategy) => strategy.marketActions)
     strategy!: Strategy;
+
+    toClose(sellPrice: number) {
+        if (this.action === MarketActionEnum.BUY) {
+            throw new MarketActionError(
+                "Cannot close a market action that has not been bought yet"
+            );
+        }
+        this.sellPrice = sellPrice;
+        this.action = MarketActionEnum.SELL;
+    }
 
     shouldStopLoss(currentPrice: number) {
         if (

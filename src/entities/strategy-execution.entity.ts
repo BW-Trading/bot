@@ -14,7 +14,7 @@ export class StrategyExecution {
     @Column({ nullable: true })
     error?: string;
 
-    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+    @Column({ nullable: true })
     startedAt?: Date;
 
     @Column({ nullable: true })

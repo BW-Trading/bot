@@ -60,7 +60,7 @@ export class StrategyManagerService {
             const strategyResult = await strategyInstance.run();
 
             await strategyExecutionService.complete(execution, strategyResult);
-            await this.computeStrategyResult(strategyResult);
+            await this.computeStrategyResult(strategy.id, strategyResult);
         } catch (error: any) {
             console.log(error);
             await strategyExecutionService.fail(currentExecution, error);
@@ -112,7 +112,7 @@ export class StrategyManagerService {
                     strategyResult
                 );
 
-                await this.computeStrategyResult(strategyResult);
+                await this.computeStrategyResult(strategy.id, strategyResult);
             } catch (error: any) {
                 await strategyExecutionService.fail(currentExecution, error);
             } finally {
@@ -153,10 +153,14 @@ export class StrategyManagerService {
             .map((strategyInstance) => strategyInstance.instance);
     }
 
-    async computeStrategyResult(strategyResult: StrategyResult) {
+    async computeStrategyResult(
+        strategyId: number,
+        strategyResult: StrategyResult
+    ) {
         strategyResult.marketActions.forEach(async (action: MarketAction) => {
             try {
                 await marketActionService.execute(
+                    strategyId,
                     action,
                     strategyResult.currentPrice
                 );

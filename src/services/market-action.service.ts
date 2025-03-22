@@ -1,8 +1,10 @@
+import { In } from "typeorm";
 import { MarketActionStatusEnum } from "../entities/enums/market-action-status.enum";
 import { MarketActionEnum } from "../entities/enums/market-action.enum";
 import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { MarketActionError } from "../errors/market-action.error";
+import { logger } from "../loggers/logger";
 import DatabaseManager from "./database-manager.service";
 import { strategyService } from "./strategy.service";
 
@@ -17,9 +19,10 @@ class MarketActionService {
     async create(
         strategy: Strategy,
         amount: number,
+        buyPrice: number,
         stopLoss?: number,
         takeProfit?: number
-    ) {
+    ): Promise<MarketAction> {
         if (stopLoss && takeProfit && stopLoss >= takeProfit) {
             throw new MarketActionError(
                 "Stop loss must be lower than take profit"
@@ -30,16 +33,38 @@ class MarketActionService {
             strategy,
             MarketActionEnum.BUY,
             amount,
+            buyPrice,
             stopLoss,
             takeProfit
         );
-        return this.marketActionRepository.save(marketAction);
+
+        const savedMarketAction = await this.marketActionRepository
+            .createQueryBuilder()
+            .insert()
+            .into(MarketAction)
+            .values(marketAction)
+            .returning([
+                "id",
+                "action",
+                "amount",
+                "buyPrice",
+                "stopLoss",
+                "takeProfit",
+                "createdAt",
+            ])
+            .execute();
+
+        return savedMarketAction.raw[0];
     }
 
     /**
      *
      */
-    async execute(marketAction: MarketAction, currentPrice: number) {
+    async execute(
+        strategyId: number,
+        marketAction: MarketAction,
+        currentPrice: number
+    ) {
         if (
             marketAction.status === MarketActionStatusEnum.CLOSED ||
             marketAction.status === MarketActionStatusEnum.CANCELLED
@@ -77,17 +102,19 @@ class MarketActionService {
                 );
             }
 
-            marketAction.price = currentPrice;
-
             try {
                 marketAction.buyOrderId = await strategyService.buyAsset(
-                    marketAction.strategy.id,
+                    strategyId,
                     currentPrice,
                     marketAction.amount
                 );
                 marketAction.action = MarketActionEnum.HOLD;
+                marketAction.executedAt = new Date();
             } catch (error: any) {
-                return await this.fail(marketAction, error.message);
+                marketAction.status = MarketActionStatusEnum.PENDING;
+                logger.info(
+                    `Failed to buy asset for market action ${marketAction.id} : ${error.message}`
+                );
             }
 
             return this.marketActionRepository.save(marketAction);
@@ -95,16 +122,15 @@ class MarketActionService {
 
         // If sell, sell the asset and set the sellOrderId if needed, set the status to CLOSED
         if (marketAction.action === MarketActionEnum.SELL) {
-            marketAction.closedAt = new Date();
-            marketAction.sellPrice = currentPrice;
-            marketAction.status = MarketActionStatusEnum.CLOSED;
-
             try {
                 marketAction.sellOrderId = await strategyService.sellAsset(
-                    marketAction.strategy.id,
+                    strategyId,
                     currentPrice,
                     marketAction.amount
                 );
+                marketAction.closedAt = new Date();
+                marketAction.sellPrice = currentPrice;
+                marketAction.status = MarketActionStatusEnum.CLOSED;
             } catch (error: any) {
                 this.failClose(marketAction, error.message);
             }
@@ -114,16 +140,16 @@ class MarketActionService {
 
         // try to stop loss
         if (marketAction.shouldStopLoss(currentPrice)) {
-            return await this.close(marketAction, currentPrice);
+            return await this.close(strategyId, marketAction);
         }
 
         // try to take profit
         if (marketAction.shouldTakeProfit(currentPrice)) {
-            return await this.close(marketAction, currentPrice);
+            return await this.close(strategyId, marketAction);
         }
     }
 
-    async close(marketAction: MarketAction, currentPrice: number) {
+    async close(strategyId: number, marketAction: MarketAction) {
         if (marketAction.status === MarketActionStatusEnum.CLOSED) {
             throw new MarketActionError("Market action already closed");
         }
@@ -132,18 +158,17 @@ class MarketActionService {
             throw new MarketActionError("Market action already cancelled");
         }
 
-        if (!marketAction.price) {
-            throw new MarketActionError("Market action price not set");
+        if (!marketAction.sellPrice) {
+            throw new MarketActionError("Market action sell price not set");
         }
 
         marketAction.closedAt = new Date();
-        marketAction.sellPrice = currentPrice;
         marketAction.status = MarketActionStatusEnum.CLOSED;
 
         try {
             await strategyService.sellAsset(
-                marketAction.strategy.id,
-                currentPrice,
+                strategyId,
+                marketAction.sellPrice,
                 marketAction.amount
             );
         } catch (error: any) {
@@ -168,7 +193,7 @@ class MarketActionService {
     async getMarketActionsForUserStrategy(
         userId: string,
         strategyId: number,
-        status: MarketActionStatusEnum = MarketActionStatusEnum.OPEN
+        status: MarketActionStatusEnum[] = [MarketActionStatusEnum.OPEN]
     ) {
         return this.marketActionRepository.find({
             where: {
@@ -178,24 +203,25 @@ class MarketActionService {
                         id: userId,
                     },
                 },
-                status,
+                status: In(status),
             },
         });
     }
 
     async getMarketActionsForStrategy(
         strategyId: number,
-        status: MarketActionStatusEnum = MarketActionStatusEnum.OPEN
+        status: MarketActionStatusEnum[] = [MarketActionStatusEnum.OPEN]
     ) {
-        return this.marketActionRepository.find({
+        const marketActions = await this.marketActionRepository.find({
             where: {
                 strategy: {
                     id: strategyId,
                 },
-                status,
+                status: In(status),
             },
-            relations: ["strategy"],
         });
+
+        return marketActions;
     }
 }
 

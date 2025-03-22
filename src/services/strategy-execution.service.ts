@@ -31,6 +31,7 @@ class StrategyExecutionService {
     }
 
     execute(execution: StrategyExecution) {
+        execution.startedAt = new Date();
         execution.status = StrategyExecutionStatusEnum.EXECUTING;
         return this.strategyExecutionRepository.save(execution);
     }
@@ -38,7 +39,7 @@ class StrategyExecutionService {
     complete(execution: StrategyExecution, strategyResult: StrategyResult) {
         execution.status = StrategyExecutionStatusEnum.COMPLETED;
         execution.strategyResult = strategyResult;
-        execution.completedAt = new Date();
+        execution.completedAt = new Date(new Date().toISOString());
         return this.strategyExecutionRepository.save(execution);
     }
 

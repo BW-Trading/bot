@@ -212,22 +212,18 @@ export class StrategyController {
             const openOrders =
                 await marketActionService.getMarketActionsForUserStrategy(
                     req.session.user.user.id,
-                    id
-                );
-
-            const closedOrders =
-                await marketActionService.getMarketActionsForUserStrategy(
-                    req.session.user.user.id,
                     id,
-                    MarketActionStatusEnum.CLOSED
+                    [
+                        MarketActionStatusEnum.OPEN,
+                        MarketActionStatusEnum.CLOSED,
+                        MarketActionStatusEnum.CANCELLED,
+                        MarketActionStatusEnum.PENDING,
+                    ]
                 );
 
             sendResponse(
                 res,
-                new ResponseOkDto("Orders retrieved", 200, [
-                    ...openOrders,
-                    ...closedOrders,
-                ])
+                new ResponseOkDto("Orders retrieved", 200, openOrders)
             );
         } catch (error) {
             next(error);
