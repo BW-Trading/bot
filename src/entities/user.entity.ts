@@ -5,7 +5,11 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
+    OneToOne,
+    JoinColumn,
 } from "typeorm";
+import { Wallet } from "./wallet.entity";
+import { MarketDataAccount } from "./market-data-account.entity";
 import { Strategy } from "./strategy.entity";
 
 @Entity()
@@ -16,10 +20,10 @@ export class User {
     @Column({ unique: true })
     username!: string;
 
-    @Column()
+    @Column({ select: false })
     password!: string;
 
-    @Column()
+    @Column({ select: false })
     salt!: string;
 
     @CreateDateColumn({ type: "timestamp", nullable: true })
@@ -31,6 +35,17 @@ export class User {
     @Column({ default: false })
     archived!: boolean;
 
-    @OneToMany(() => Strategy, (strategy) => strategy.user)
+    @OneToOne(() => Wallet)
+    @JoinColumn()
+    wallet!: Wallet;
+
+    @OneToMany(
+        () => MarketDataAccount,
+        (marketDataAccount) => marketDataAccount.user,
+        { cascade: true }
+    )
+    marketDataAccounts!: MarketDataAccount[];
+
+    @OneToMany(() => Strategy, (strategy) => strategy.user, { cascade: true })
     strategies!: Strategy[];
 }

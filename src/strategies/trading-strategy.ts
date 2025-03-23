@@ -1,58 +1,50 @@
-import { ValidationError } from "class-validator";
-import { Strategy } from "../entities/strategy.entity";
-import { ITradingStrategy, StrategyResult } from "./trading-strategy.interface";
-import { strategyService } from "../services/strategy.service";
-import { marketActionService } from "../services/market-action.service";
-import { MarketActionStatusEnum } from "../entities/enums/market-action-status.enum";
+import { TradeSignal } from "./trade-signal";
 
-export abstract class TradingStrategy implements ITradingStrategy {
-    strategy: Strategy;
-    isRunning: boolean;
+export enum SignalAction {
+    BUY = "BUY",
+    SELL = "SELL",
+}
 
-    constructor(strategy: Strategy) {
-        this.strategy = strategy;
-        this.isRunning = false;
+export abstract class TradingStrategy {
+    protected config: any;
+    protected state: any;
+    protected activeOrders: Array<{
+        id: number;
+        action: SignalAction;
+        symbol: string;
+        timestamp: number;
+    }> = [];
+
+    constructor(config: any, state?: any) {
+        this.config = config;
+        this.state = state || {};
     }
 
-    /**
-     * Fonction abstraite à implémenter par les classes filles
-     * Décrit les actions à effectuer lors de l'exécution de la stratégie
-     */
-    abstract run(): Promise<StrategyResult>;
+    // Fonction de validation de la configuration
+    public abstract validateConfig(config: any): any;
 
-    /**
-     * Fonction de validation de la configuration appelée par le service de stratégie à la création d'une instance
-     */
-    abstract validateConfig(config: any): ValidationError[];
+    // Analyse les données de marché et met à jour l'état
+    public abstract analyze(marketData: any): void;
 
-    start() {
-        this.isRunning = true;
+    // Génère un signal ou un ensemble de signaux
+    public abstract generateSignals(): TradeSignal[];
+
+    public getState(): any {
+        return this.state;
     }
 
-    stop() {
-        this.isRunning = false;
+    public addActiveOrder(orderId: number, signal: any): void {
+        this.activeOrders.push({
+            id: orderId,
+            action: signal.action,
+            symbol: signal.symbol,
+            timestamp: Date.now(),
+        });
     }
 
-    getRunning(): boolean {
-        return this.isRunning;
-    }
-
-    getPortfolio() {
-        return strategyService.getPortfolioForUserStrategy(
-            this.strategy.user.id,
-            this.strategy.id
-        );
-    }
-
-    getStrategyOpenMarketActions(
-        status: MarketActionStatusEnum[] = [
-            MarketActionStatusEnum.OPEN,
-            MarketActionStatusEnum.PENDING,
-        ]
-    ) {
-        return marketActionService.getMarketActionsForStrategy(
-            this.strategy.id,
-            status
+    public removeActiveOrder(orderId: number): void {
+        this.activeOrders = this.activeOrders.filter(
+            (order) => order.id !== orderId
         );
     }
 }

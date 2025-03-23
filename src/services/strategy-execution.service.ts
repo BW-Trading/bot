@@ -1,7 +1,8 @@
-import { StrategyExecutionStatusEnum } from "../entities/enums/strategy-execution-status.enum";
-import { StrategyExecution } from "../entities/strategy-execution.entity";
+import {
+    ExecutionStatusEnum,
+    StrategyExecution,
+} from "../entities/strategy-execution.entity";
 import { Strategy } from "../entities/strategy.entity";
-import { StrategyResult } from "../strategies/trading-strategy.interface";
 import DatabaseManager from "./database-manager.service";
 
 class StrategyExecutionService {
@@ -10,44 +11,35 @@ class StrategyExecutionService {
             StrategyExecution
         );
 
-    getUserStrategyExecutions(userId: string, strategyId: number) {
-        return this.strategyExecutionRepository.find({
-            where: {
-                strategy: {
-                    id: strategyId,
-                    user: {
-                        id: userId,
-                    },
-                },
-            },
-        });
-    }
-
-    create(strategy: Strategy) {
-        let execution = new StrategyExecution();
-        execution.status = StrategyExecutionStatusEnum.PENDING;
+    async create(strategy: Strategy) {
+        const execution = new StrategyExecution();
+        execution.status = ExecutionStatusEnum.PENDING;
         execution.strategy = strategy;
-        return this.strategyExecutionRepository.save(execution);
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 
-    execute(execution: StrategyExecution) {
+    async start(execution: StrategyExecution, inputData: any) {
+        execution.status = ExecutionStatusEnum.IN_PROGRESS;
         execution.startedAt = new Date();
-        execution.status = StrategyExecutionStatusEnum.EXECUTING;
-        return this.strategyExecutionRepository.save(execution);
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 
-    complete(execution: StrategyExecution, strategyResult: StrategyResult) {
-        execution.status = StrategyExecutionStatusEnum.COMPLETED;
-        execution.strategyResult = strategyResult;
-        execution.completedAt = new Date(new Date().toISOString());
-        return this.strategyExecutionRepository.save(execution);
+    async complete(execution: StrategyExecution, resultData: any) {
+        execution.status = ExecutionStatusEnum.COMPLETED;
+        execution.completedAt = new Date();
+        execution.resultData = resultData;
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 
-    fail(execution: StrategyExecution, error: Error) {
-        execution.status = StrategyExecutionStatusEnum.FAILED;
+    async fail(execution: StrategyExecution, errorMessage: string) {
+        execution.status = ExecutionStatusEnum.FAILED;
+        execution.errorMessage = errorMessage;
         execution.failedAt = new Date();
-        execution.error = error.message;
-        return this.strategyExecutionRepository.save(execution);
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 }
 

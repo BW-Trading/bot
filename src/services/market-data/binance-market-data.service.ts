@@ -1,7 +1,7 @@
 import axios from "axios";
-import { BinanceFetchingError } from "../errors/binance-fetching.error";
+import { BinanceFetchingError } from "../../errors/binance-fetching.error";
 
-class MarketDataService {
+class BinanceMarketDataService {
     private binanceUrl = "https://api.binance.com/api/v3";
 
     /**
@@ -330,4 +330,4 @@ class MarketDataService {
     }
 }
 
-export const marketDataService = new MarketDataService();
+export const marketDataService = new BinanceMarketDataService();
