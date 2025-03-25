@@ -1,3 +1,4 @@
+import { Strategy } from "../entities/strategy.entity";
 import { TradeSignal } from "./trade-signal";
 
 export enum SignalAction {
@@ -6,6 +7,7 @@ export enum SignalAction {
 }
 
 export abstract class TradingStrategy {
+    protected strategyId: number;
     protected config: any;
     protected state: any;
     protected activeOrders: Array<{
@@ -15,13 +17,18 @@ export abstract class TradingStrategy {
         timestamp: number;
     }> = [];
 
-    constructor(config: any, state?: any) {
-        this.config = config;
-        this.state = state || {};
+    constructor(strategy: Strategy) {
+        this.strategyId = strategy.id;
+        this.validateConfig(strategy.config);
+        this.config = strategy.config;
+        this.state = strategy.state || {};
     }
 
     // Fonction de validation de la configuration
     public abstract validateConfig(config: any): any;
+
+    // Fonction qui retourne les types de données nécessaires pour cette stratégie ex: ["orderBook", "tickerPrice"]
+    public abstract getRequiredMarketData(): string[];
 
     // Analyse les données de marché et met à jour l'état
     public abstract analyze(marketData: any): void;

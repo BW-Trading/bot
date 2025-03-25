@@ -1,7 +1,25 @@
 import axios from "axios";
 import { BinanceFetchingError } from "../../errors/binance-fetching.error";
+import { MarketDataService } from "./market-data";
 
-class BinanceMarketDataService {
+class BinanceMarketDataService extends MarketDataService {
+    availableMarketData = [
+        "average-price",
+        "ticker/24hr",
+        "ticker/price",
+        "trades",
+        "historicalTrades",
+        "aggTrades",
+        "depth",
+        "klines",
+        "tradingDay",
+        "ticker/bookTicker",
+    ];
+
+    retrieveMarketData(requiredMarketData: string[]): Promise<any> {
+        throw new Error("Method not implemented.");
+    }
+
     private binanceUrl = "https://api.binance.com/api/v3";
 
     /**

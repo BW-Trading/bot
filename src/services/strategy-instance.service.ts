@@ -3,6 +3,7 @@ import { StrategyInstanceEnum } from "../strategies/strategies.enum";
 import { Strategy } from "../entities/strategy.entity";
 import { TestTradingStrategy } from "../strategies/test-strategy";
 import { NotFoundError } from "../errors/not-found-error";
+import { TradingStrategy } from "../strategies/trading-strategy";
 
 class StrategyService {
     private strategyRepository =
@@ -20,6 +21,9 @@ class StrategyService {
                 );
         }
     }
+
+    async sync(strategyInstance: TradingStrategy) {}
+    async save(strategyInstance: TradingStrategy) {}
 }
 
 export const strategyService = new StrategyService();

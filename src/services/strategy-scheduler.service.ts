@@ -29,7 +29,7 @@ export class StrategySchedulerService {
         }
 
         const cronJob = cron.schedule(strategy.executionInterval, () => {
-            this.strategyManagerService.executeStrategy(strategy);
+            this.strategyManagerService.executeStrategy(strategy, true);
         });
 
         this.scheduledStrategies.set(strategy.id, {
@@ -50,6 +50,7 @@ export class StrategySchedulerService {
         scheduledStrategy?.cronJob.stop();
 
         this.scheduledStrategies.delete(strategy.id);
+        this.strategyManagerService.removeActiveStrategy(strategy.id);
     }
 
     isScheduled(strategyId: number) {

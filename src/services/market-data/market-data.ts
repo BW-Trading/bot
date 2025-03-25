@@ -1,20 +1,9 @@
-export interface MarketDataService {
-    /**
-     * Récupérer le prix actuel d'une paire de trading
-     */
-    getTickerPrice(symbol: string, symbols: string[]): Promise<any>;
+export abstract class MarketDataService {
+    abstract availableMarketData: string[];
 
-    /**
-     * Récupérer l'order book d'une paire de trading
-     */
-    getOrderBook(symbol: string, limit: number): Promise<any>;
+    hasMarketData(marketData: string): boolean {
+        return this.availableMarketData.includes(marketData);
+    }
 
-    /**
-     * Récupérer l'historique des prix du marché (bougies)
-     */
-    getMarketHistory(
-        symbol: string,
-        interval: string,
-        limit: number
-    ): Promise<any>;
+    abstract retrieveMarketData(requiredMarketData: string[]): Promise<any>;
 }
