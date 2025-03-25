@@ -22,6 +22,22 @@ class StrategyService {
         }
     }
 
+    async getByIdOrThrow(strategyId: number) {
+        const strategy = await this.strategyRepository.findOneBy({
+            id: strategyId,
+        });
+
+        if (!strategy) {
+            throw new NotFoundError(
+                "Strategy",
+                `Strategy not found with id ${strategyId}`,
+                "id"
+            );
+        }
+
+        return strategy;
+    }
+
     async sync(strategyInstance: TradingStrategy) {}
     async save(strategyInstance: TradingStrategy) {}
 }

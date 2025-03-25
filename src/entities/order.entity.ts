@@ -3,7 +3,6 @@ import {
     PrimaryGeneratedColumn,
     Column,
     ManyToOne,
-    JoinColumn,
     CreateDateColumn,
 } from "typeorm";
 import { Strategy } from "./strategy.entity";
@@ -48,8 +47,8 @@ export class Order {
     @Column()
     asset!: TradeableAssetEnum;
 
-    @Column("decimal", { precision: 18, scale: 8 })
-    quantity!: number;
+    @Column("decimal", { precision: 18, scale: 8, nullable: true })
+    quantity?: number;
 
     @Column("decimal", { precision: 18, scale: 8, nullable: true })
     price?: number;
@@ -59,6 +58,12 @@ export class Order {
     })
     position?: Position;
 
+    @Column({ nullable: true })
+    exchangeId?: string;
+
     @CreateDateColumn()
     createdAt!: Date;
+
+    @Column({ nullable: true })
+    executedAt?: Date;
 }

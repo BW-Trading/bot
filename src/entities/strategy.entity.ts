@@ -14,6 +14,7 @@ import { MarketDataAccount } from "./market-data-account.entity";
 import { Order } from "./order.entity";
 import { Position } from "./position.entity";
 import { StrategyExecution } from "./strategy-execution.entity";
+import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 
 export enum StrategyInstanceStatusEnum {
     ACTIVE = "active",
@@ -24,6 +25,9 @@ export enum StrategyInstanceStatusEnum {
 export class Strategy {
     @PrimaryGeneratedColumn()
     id!: number;
+
+    @Column({ type: "enum", enum: TradeableAssetEnum })
+    asset!: TradeableAssetEnum;
 
     @ManyToOne(() => User, (user) => user.strategies)
     user!: User;

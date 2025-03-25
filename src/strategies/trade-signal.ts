@@ -1,14 +1,9 @@
 import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
-
-export enum TradeAction {
-    BUY = "BUY",
-    SELL = "SELL",
-    HOLD = "HOLD",
-    CLOSE_POSITION = "CLOSE_POSITION",
-}
+import { OrderSide, OrderType } from "../entities/order.entity";
 
 export interface TradeSignal {
-    action: TradeAction;
+    action: OrderSide;
+    type: OrderType;
     asset: TradeableAssetEnum;
     price?: number;
     quantity?: number;

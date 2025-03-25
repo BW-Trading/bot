@@ -1,5 +1,7 @@
+import { Order } from "../../entities/order.entity";
 import { NotFoundError } from "../../errors/not-found-error";
 import { marketDataAccountService } from "../market-data-account.service";
+import { BinanceMarketDataService } from "./binance-market-data.service";
 import { ExchangeApiEnum } from "./exchange-api.enum";
 import { MarketDataService } from "./market-data";
 
@@ -13,21 +15,30 @@ export class MarketDataManager {
                 strategyId
             );
 
-        switch (marketDataAccount.exchangeApi) {
-            case ExchangeApiEnum.BINANCE:
-                return; // Return BinanceMarketDataService.getMarketData(requiredMarketData);
-            default:
-                throw new NotFoundError(
-                    `ExchangeApiEnum`,
-                    `Exchange API not found for strategy ${strategyId}`
-                );
-        }
+        const marketDataService = this.getMarketDataService(
+            marketDataAccount.exchangeApi
+        );
+
+        return marketDataService.retrieveMarketData(requiredMarketData);
+    }
+
+    async placeOrder(strategyId: number, order: Order): Promise<any> {
+        const marketDataAccount =
+            await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
+                strategyId
+            );
+
+        const marketDataService = this.getMarketDataService(
+            marketDataAccount.exchangeApi
+        );
+
+        return marketDataService.placeOrder(order);
     }
 
     getMarketDataService(exchangeApi: ExchangeApiEnum): MarketDataService {
         switch (exchangeApi) {
             case ExchangeApiEnum.BINANCE:
-                return; // return BinanceMarketDataService;
+                return new BinanceMarketDataService();
             default:
                 throw new NotFoundError(
                     `ExchangeApiEnum`,

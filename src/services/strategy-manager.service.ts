@@ -4,7 +4,7 @@ import { TradeSignal } from "../strategies/trade-signal";
 import { TradingStrategy } from "../strategies/trading-strategy";
 import { marketDataManager } from "./market-data/market-data-manager";
 import { strategyExecutionService } from "./strategy-execution.service";
-import { strategyService } from "./strategy-instance.service";
+import { strategyService } from "./strategy.service";
 
 export class StrategyManagerService {
     private static instance: StrategyManagerService;
