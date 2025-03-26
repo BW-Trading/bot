@@ -1,11 +1,15 @@
-import { Order } from "../entities/order.entity";
+import { Order, OrderStatus } from "../entities/order.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { TradeSignal } from "../strategies/trade-signal";
+import DatabaseManager from "./database-manager.service";
 import { marketDataManager } from "./market-data/market-data-manager";
 import { positionService } from "./position.service";
 import { strategyService } from "./strategy.service";
 
 class OrderService {
+    private orderRepository =
+        DatabaseManager.getAppDataSource().getRepository(Order);
+
     async createOrder(strategy: Strategy, tradeSignal: TradeSignal) {
         const order = new Order();
         order.strategy = strategy;
@@ -18,6 +22,35 @@ class OrderService {
             strategy,
             tradeSignal.asset
         );
+
+        return (
+            await this.orderRepository
+                .createQueryBuilder()
+                .insert()
+                .into(Order)
+                .values(order)
+                .returning([
+                    "id",
+                    "side",
+                    "type",
+                    "status",
+                    "asset",
+                    "quantity",
+                    "price",
+                    "exchangeId",
+                    "createdAt",
+                    "executedAt",
+                ])
+                .execute()
+        ).raw[0] as Order;
+    }
+
+    async getStrategyOrders(strategyId: number, status?: OrderStatus) {
+        return this.orderRepository.find({
+            where: {
+                strategy: { id: strategyId },
+            },
+        });
     }
 
     async placeOrders(strategyId: number, tradeSignals: TradeSignal[]) {

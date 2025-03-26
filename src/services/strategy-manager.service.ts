@@ -3,6 +3,7 @@ import { CustomError } from "../errors/custom-error";
 import { TradeSignal } from "../strategies/trade-signal";
 import { TradingStrategy } from "../strategies/trading-strategy";
 import { marketDataManager } from "./market-data/market-data-manager";
+import { orderService } from "./order.service";
 import { strategyExecutionService } from "./strategy-execution.service";
 import { strategyService } from "./strategy.service";
 
@@ -43,25 +44,23 @@ export class StrategyManagerService {
             await strategyService.sync(activeStrategy);
 
             // Retrieve the market data required by the strategy
-            const requiredMarketData =
-                await activeStrategy.getRequiredMarketData();
-
+            // The market data is retrieve independently from the strategy execution to avoid blocking the execution and improve performance
             const marketData = await marketDataManager.retrieveMarketData(
                 strategy.id,
-                requiredMarketData
+                activeStrategy.getRequiredMarketData()
             );
 
             // Analyze the market data and generate signals for processing
             activeStrategy.analyze(marketData);
-            const resultData = await activeStrategy.generateSignals();
+            const resultData = activeStrategy.generateSignals();
 
             // Save the strategy state after processing the signals
             await strategyService.save(activeStrategy);
 
             // Compute the signals and complete the execution
-            this.computeSignals(resultData);
+            await this.computeSignals(strategy.id, resultData);
 
-            strategyExecutionService.complete(execution, {
+            await strategyExecutionService.complete(execution, {
                 signals: resultData,
                 state: activeStrategy.getState(),
             });
@@ -80,13 +79,13 @@ export class StrategyManagerService {
         }
     }
 
-    computeSignals(signals: TradeSignal[]) {
-        signals.forEach((signal) => {
-            this.computeSignal(signal);
-        });
+    /**
+     * Simple pour le moment. Pourra être complexifié avec un switch suivant le type de signal
+     *
+     */
+    async computeSignals(strategyId: number, signals: TradeSignal[]) {
+        await orderService.placeOrders(strategyId, signals);
     }
-
-    computeSignal(signal: TradeSignal) {}
 
     getActiveStrategy(strategyId: number) {
         return this.activateStrategies.get(strategyId);

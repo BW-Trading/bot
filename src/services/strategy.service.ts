@@ -4,6 +4,8 @@ import { Strategy } from "../entities/strategy.entity";
 import { TestTradingStrategy } from "../strategies/test-strategy";
 import { NotFoundError } from "../errors/not-found-error";
 import { TradingStrategy } from "../strategies/trading-strategy";
+import { orderService } from "./order.service";
+import { OrderStatus } from "../entities/order.entity";
 
 class StrategyService {
     private strategyRepository =
@@ -38,8 +40,31 @@ class StrategyService {
         return strategy;
     }
 
-    async sync(strategyInstance: TradingStrategy) {}
-    async save(strategyInstance: TradingStrategy) {}
+    async sync(strategyInstance: TradingStrategy) {
+        const strategy = await this.getByIdOrThrow(
+            strategyInstance.getStrategyId()
+        );
+        // Sync the strategy state
+        strategyInstance.setState(strategy.state);
+
+        // Sync the active orders
+        strategyInstance.setActiveOrders(
+            await orderService.getStrategyOrders(
+                strategy.id,
+                OrderStatus.PENDING
+            )
+        );
+    }
+
+    async save(strategyInstance: TradingStrategy) {
+        const strategy = await this.getByIdOrThrow(
+            strategyInstance.getStrategyId()
+        );
+
+        // Save the strategy state
+        strategy.state = strategyInstance.getState();
+        await this.strategyRepository.save(strategy);
+    }
 }
 
 export const strategyService = new StrategyService();

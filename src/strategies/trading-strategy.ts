@@ -40,6 +40,26 @@ export abstract class TradingStrategy {
         return this.state;
     }
 
+    public setState(state: any): void {
+        this.state = state;
+    }
+
+    public getConfig(): any {
+        return this.config;
+    }
+
+    public setConfig(config: any): void {
+        this.config = config;
+    }
+
+    public setActiveOrders(orders: any[]): void {
+        this.activeOrders = orders;
+    }
+
+    public getStrategyId(): number {
+        return this.strategyId;
+    }
+
     public addActiveOrder(orderId: number, signal: any): void {
         this.activeOrders.push({
             id: orderId,
