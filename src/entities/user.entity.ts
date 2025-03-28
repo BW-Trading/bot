@@ -35,10 +35,6 @@ export class User {
     @Column({ default: false })
     archived!: boolean;
 
-    @OneToOne(() => Wallet)
-    @JoinColumn()
-    wallet!: Wallet;
-
     @OneToMany(
         () => MarketDataAccount,
         (marketDataAccount) => marketDataAccount.user,

@@ -5,6 +5,11 @@ import DatabaseManager from "./database-manager.service";
 import { marketDataManager } from "./market-data/market-data-manager";
 import { positionService } from "./position.service";
 import { strategyService } from "./strategy.service";
+import {
+    PlaceOrderResponse,
+    PlaceOrderStatus,
+} from "./market-data/market-data";
+import { logger } from "../loggers/logger";
 
 class OrderService {
     private orderRepository =
@@ -37,9 +42,13 @@ class OrderService {
                     "asset",
                     "quantity",
                     "price",
-                    "exchangeId",
+                    "fee",
+                    "orderId",
+                    "position",
                     "createdAt",
                     "executedAt",
+                    "canceledAt",
+                    "failReason",
                 ])
                 .execute()
         ).raw[0] as Order;
@@ -55,19 +64,75 @@ class OrderService {
 
     async placeOrders(strategyId: number, tradeSignals: TradeSignal[]) {
         for (const tradeSignal of tradeSignals) {
-            await this.placeOrder(strategyId, tradeSignal);
+            try {
+                await this.placeOrder(strategyId, tradeSignal);
+            } catch (error) {
+                logger.error(
+                    `Failed to place order for strategy ${strategyId} and asset ${tradeSignal.asset}`,
+                    error
+                );
+            }
         }
     }
 
     async placeOrder(strategyId: number, tradeSignal: TradeSignal) {
         const strategy = await strategyService.getByIdOrThrow(strategyId);
 
-        // Place an order
         const order = await this.createOrder(strategy, tradeSignal);
-        const orderResponse = await marketDataManager.placeOrder(
+        const result: PlaceOrderResponse = await marketDataManager.placeOrder(
             strategy.id,
             order
         );
+
+        if (result.status === PlaceOrderStatus.SUCCESS) {
+            await this.placed(order, result);
+        } else {
+            await this.failed(order, `${result.code} - ${result.errorMessage}`);
+        }
+    }
+
+    async placed(order: Order, placeOrderResponse: PlaceOrderResponse) {
+        order.status = OrderStatus.PLACED;
+        order.orderId = placeOrderResponse.data.orderId;
+        order.fee = placeOrderResponse.data.fee;
+
+        return await this.orderRepository.save(order);
+    }
+
+    async executed(order: Order, placeOrderResponse: PlaceOrderResponse) {
+        order.status = OrderStatus.EXECUTED;
+        order.executedAt = placeOrderResponse.data.timestamp;
+
+        return await this.orderRepository.save(order);
+    }
+
+    async failed(order: Order, reason: string) {
+        order.status = OrderStatus.FAILED;
+        order.failReason = reason;
+
+        return await this.orderRepository.save(order);
+    }
+
+    async canceled(order: Order) {
+        order.status = OrderStatus.CANCELED;
+        order.canceledAt = new Date();
+
+        return await this.orderRepository.save(order);
+    }
+
+    async cancel(strategyId: number, order: Order) {
+        const strategy = await strategyService.getByIdOrThrow(strategyId);
+
+        const result: PlaceOrderResponse = await marketDataManager.placeOrder(
+            strategy.id,
+            order
+        );
+
+        if (result.status === PlaceOrderStatus.SUCCESS) {
+            await this.canceled(order);
+        } else {
+            logger.error(`Failed to cancel order ${order.id}`, result);
+        }
     }
 }
 

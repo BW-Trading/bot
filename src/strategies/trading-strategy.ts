@@ -56,6 +56,10 @@ export abstract class TradingStrategy {
         this.activeOrders = orders;
     }
 
+    public getActiveOrders(): any[] {
+        return this.activeOrders;
+    }
+
     public getStrategyId(): number {
         return this.strategyId;
     }

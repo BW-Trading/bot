@@ -6,6 +6,7 @@ import { NotFoundError } from "../errors/not-found-error";
 import { TradingStrategy } from "../strategies/trading-strategy";
 import { orderService } from "./order.service";
 import { OrderStatus } from "../entities/order.entity";
+import { positionService } from "./position.service";
 
 class StrategyService {
     private strategyRepository =
@@ -44,6 +45,7 @@ class StrategyService {
         const strategy = await this.getByIdOrThrow(
             strategyInstance.getStrategyId()
         );
+
         // Sync the strategy state
         strategyInstance.setState(strategy.state);
 
@@ -63,7 +65,47 @@ class StrategyService {
 
         // Save the strategy state
         strategy.state = strategyInstance.getState();
+
+        // Cancel the deleted orders
+        const activeOrders = strategyInstance.getActiveOrders();
+        const strategyOrders = await orderService.getStrategyOrders(
+            strategy.id,
+            OrderStatus.PENDING
+        );
+
+        for (const order of strategyOrders) {
+            if (!activeOrders.find((o) => o.id === order.id)) {
+                await orderService.cancel(strategy.id, order);
+            }
+        }
+
         await this.strategyRepository.save(strategy);
+    }
+
+    async archive(strategy: Strategy) {
+        if (!strategy.active) {
+            return strategy;
+        }
+
+        const position = await positionService.getStrategyPositionOrThrow(
+            strategy
+        );
+
+        if (position.totalQuantity > 0) {
+            throw new Error(
+                `Cannot archive strategy ${strategy.id} because it has open positions`
+            );
+        }
+
+        if (position.orders.length > 0) {
+            throw new Error(
+                `Cannot archive strategy with open orders: ${position.orders.length}`
+            );
+        }
+
+        strategy.active = false;
+
+        return this.strategyRepository.save(strategy);
     }
 }
 

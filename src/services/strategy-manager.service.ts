@@ -52,16 +52,16 @@ export class StrategyManagerService {
 
             // Analyze the market data and generate signals for processing
             activeStrategy.analyze(marketData);
-            const resultData = activeStrategy.generateSignals();
+            const signals = activeStrategy.generateSignals();
 
             // Save the strategy state after processing the signals
             await strategyService.save(activeStrategy);
 
             // Compute the signals and complete the execution
-            await this.computeSignals(strategy.id, resultData);
+            await orderService.placeOrders(strategy.id, signals);
 
             await strategyExecutionService.complete(execution, {
-                signals: resultData,
+                signals: signals,
                 state: activeStrategy.getState(),
             });
         } catch (error) {
@@ -77,14 +77,6 @@ export class StrategyManagerService {
                 );
             }
         }
-    }
-
-    /**
-     * Simple pour le moment. Pourra être complexifié avec un switch suivant le type de signal
-     *
-     */
-    async computeSignals(strategyId: number, signals: TradeSignal[]) {
-        await orderService.placeOrders(strategyId, signals);
     }
 
     getActiveStrategy(strategyId: number) {

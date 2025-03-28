@@ -18,8 +18,10 @@ export enum OrderType {
 
 export enum OrderStatus {
     PENDING = "pending",
+    PLACED = "placed",
     EXECUTED = "executed",
     CANCELED = "canceled",
+    FAILED = "failed",
 }
 
 export enum OrderSide {
@@ -53,17 +55,26 @@ export class Order {
     @Column("decimal", { precision: 18, scale: 8, nullable: true })
     price?: number;
 
+    @Column("decimal", { precision: 18, scale: 8, nullable: true })
+    fee?: number;
+
+    @Column({ nullable: true })
+    orderId?: string;
+
     @ManyToOne(() => Position, (position) => position.orders, {
         nullable: true,
     })
     position?: Position;
-
-    @Column({ nullable: true })
-    exchangeId?: string;
 
     @CreateDateColumn()
     createdAt!: Date;
 
     @Column({ nullable: true })
     executedAt?: Date;
+
+    @Column({ nullable: true })
+    canceledAt?: Date;
+
+    @Column({ nullable: true })
+    failReason?: string;
 }

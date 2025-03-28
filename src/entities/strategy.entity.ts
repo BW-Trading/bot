@@ -60,8 +60,8 @@ export class Strategy {
     @OneToMany(() => StrategyExecution, (execution) => execution.strategy)
     executions!: StrategyExecution[];
 
-    @OneToMany(() => Position, (position) => position.strategy)
-    positions!: Position[];
+    @OneToOne(() => Position, (position) => position.strategy)
+    position!: Position;
 
     @Column()
     executionInterval!: string; // Cron expression
@@ -71,4 +71,7 @@ export class Strategy {
 
     @UpdateDateColumn()
     updatedAt!: Date;
+
+    @Column({ default: true })
+    active!: boolean;
 }
