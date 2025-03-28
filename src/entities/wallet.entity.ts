@@ -24,6 +24,9 @@ export class Wallet {
     @Column("decimal", { precision: 18, scale: 8, default: 0 })
     reservedBalance!: number;
 
+    @Column("decimal", { precision: 18, scale: 8, default: 0 })
+    placedBalance!: number;
+
     @UpdateDateColumn({ type: "timestamp" })
     updatedAt!: Date;
 }
