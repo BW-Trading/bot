@@ -7,7 +7,6 @@ import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { plainToInstance } from "class-transformer";
 import { StrategyManagerService } from "../services/strategy-manager.service";
 import { AddBalanceStrategyDto } from "../dto/requests/strategy/add-balance.dto";
-import { Portfolio } from "../entities/portfolio.entity";
 import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
 import { StrategyNotActiveError } from "../errors/strategy-not-active.error";
@@ -15,8 +14,6 @@ import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
-import { marketActionService } from "../services/market-action.service";
-import { MarketActionStatusEnum } from "../entities/enums/market-action-status.enum";
 import { GetStrategyExecutionDto } from "../dto/requests/strategy/get-executions.dto";
 import { strategyExecutionService } from "../services/strategy-execution.service";
 
@@ -27,7 +24,7 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
-            const strategies = strategyService.getRunnableStrategies();
+            const strategies = strategyService.getExistingImplementations();
             sendResponse(
                 res,
                 new ResponseOkDto(
@@ -44,9 +41,7 @@ export class StrategyController {
     static async getStrategy(req: Request, res: Response, next: NextFunction) {
         try {
             const dto = plainToInstance(GetStrategyByIdDto, req.params);
-            const strategy = await strategyService.getStrategyByIdOrThrow(
-                dto.id
-            );
+            const strategy = await strategyService.getByIdOrThrow(dto.id);
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy retrieved", 200, strategy)
@@ -71,10 +66,7 @@ export class StrategyController {
                 req.query
             );
 
-            const strategies = await strategyService.getUserStrategies(
-                req.session.user.user.id,
-                dto.isActive
-            );
+            const strategies = await strategyService.getRunnableStrategies();
 
             sendResponse(
                 res,
@@ -306,10 +298,7 @@ export class StrategyController {
 
             const dto = plainToInstance(ArchiveStrategyDto, req.params);
 
-            const strategy = await strategyService.archiveStrategy(
-                req.session.user.user.id,
-                dto.id
-            );
+            const strategy = await strategyService.archive(dto.id);
             sendResponse(
                 res,
                 new ResponseOkDto<Strategy>("Strategy archived", 200, strategy)

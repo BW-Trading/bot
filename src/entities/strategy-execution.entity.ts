@@ -7,7 +7,6 @@ import {
     UpdateDateColumn,
 } from "typeorm";
 import { Strategy } from "./strategy.entity";
-import { User } from "./user.entity";
 
 export enum ExecutionStatusEnum {
     PENDING = "pending",

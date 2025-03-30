@@ -10,18 +10,19 @@ import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 import { Position } from "./position.entity";
 
 export enum OrderType {
-    MARKET = "market",
     LIMIT = "limit",
     STOP_LOSS = "stop_loss",
     TAKE_PROFIT = "take_profit",
 }
 
 export enum OrderStatus {
+    CREATED = "created",
     PENDING = "pending",
-    PLACED = "placed",
-    EXECUTED = "executed",
+    FILLED = "filled",
+    PARTIALLY_FILLED = "partially_filled",
     CANCELED = "canceled",
-    FAILED = "failed",
+    REJECTED = "rejected",
+    EXPIRED = "expired",
 }
 
 export enum OrderSide {
@@ -43,17 +44,20 @@ export class Order {
     @Column({ type: "enum", enum: OrderType })
     type!: OrderType;
 
-    @Column({ type: "enum", enum: OrderStatus, default: OrderStatus.PENDING })
+    @Column({ type: "enum", enum: OrderStatus, default: OrderStatus.CREATED })
     status!: OrderStatus;
 
     @Column()
     asset!: TradeableAssetEnum;
 
-    @Column("decimal", { precision: 18, scale: 8, nullable: true })
-    quantity?: number;
+    @Column("decimal", { precision: 18, scale: 8 })
+    quantity!: number;
 
     @Column("decimal", { precision: 18, scale: 8, nullable: true })
-    price?: number;
+    filledQuantity?: number;
+
+    @Column("decimal", { precision: 18, scale: 8, nullable: true })
+    price!: number;
 
     @Column("decimal", { precision: 18, scale: 8, nullable: true })
     fee?: number;

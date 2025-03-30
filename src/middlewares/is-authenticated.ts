@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth.service";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { appEnv } from "../utils/env/app-env";
+import { setUserContext } from "../entities/user.entity";
 
 export function isAuthenticated(
     req: Request,
@@ -25,7 +26,7 @@ export function isAuthenticated(
 
     try {
         authService.isValidJwt(token);
-        next();
+        setUserContext(sessionUser.user.id, next);
     } catch (error) {
         next(error);
     }

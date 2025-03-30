@@ -21,7 +21,7 @@ export class MarketDataAccount {
     @Column({ type: "enum", enum: ExchangeApiEnum })
     exchangeApi!: ExchangeApiEnum;
 
-    @Column()
+    @Column({ unique: true })
     apiKey!: string;
 
     @ManyToOne(() => User, (user) => user.marketDataAccounts)

@@ -23,34 +23,34 @@ export class StrategySchedulerService {
         return StrategySchedulerService.instance;
     }
 
-    scheduleStrategy(strategy: Strategy) {
-        if (this.isScheduled(strategy.id)) {
+    scheduleStrategy(strategyId: number, executionInterval: string) {
+        if (this.isScheduled(strategyId)) {
             throw new AlreadyExistsError("Strategy is already scheduled");
         }
 
-        const cronJob = cron.schedule(strategy.executionInterval, () => {
-            this.strategyManagerService.executeStrategy(strategy, true);
+        const cronJob = cron.schedule(executionInterval, () => {
+            this.strategyManagerService.executeStrategy(strategyId, true);
         });
 
-        this.scheduledStrategies.set(strategy.id, {
+        this.scheduledStrategies.set(strategyId, {
             cronJob,
         });
     }
 
-    stopScheduledStrategy(strategy: Strategy) {
-        if (!this.isScheduled(strategy.id)) {
+    stopScheduledStrategy(strategyId: number) {
+        if (!this.isScheduled(strategyId)) {
             throw new NotFoundError(
                 "Scheduled Strategy",
                 "Strategy is not scheduled",
-                `${strategy.id}`
+                `${strategyId}`
             );
         }
 
-        const scheduledStrategy = this.scheduledStrategies.get(strategy.id);
+        const scheduledStrategy = this.scheduledStrategies.get(strategyId);
         scheduledStrategy?.cronJob.stop();
 
-        this.scheduledStrategies.delete(strategy.id);
-        this.strategyManagerService.removeActiveStrategy(strategy.id);
+        this.scheduledStrategies.delete(strategyId);
+        this.strategyManagerService.removeActiveStrategy(strategyId);
     }
 
     isScheduled(strategyId: number) {

@@ -56,6 +56,20 @@ class PositionService {
         return position;
     }
 
+    async getByIdOrThrow(positionId: number) {
+        const position = await this.positionRepository.findOneBy({
+            id: positionId,
+        });
+        if (!position) {
+            throw new NotFoundError(
+                "Position",
+                `Position not found with id ${positionId}`,
+                "id"
+            );
+        }
+        return position;
+    }
+
     async createPosition(strategy: Strategy, asset: TradeableAssetEnum) {
         const position = new Position();
         position.strategy = strategy;
@@ -65,24 +79,8 @@ class PositionService {
         return this.positionRepository.save(position);
     }
 
-    async updatePosition(order: Order) {
-        const position = await this.getOrderPositionOrThrow(order);
-
-        // If the order is not executed, we don't need to update the position
-        if (order.status !== OrderStatus.EXECUTED) {
-            return position;
-        }
-
-        if (order.side === OrderSide.BUY) {
-            position.totalQuantity += order.quantity || 0;
-        } else {
-            position.totalQuantity -= order.quantity || 0;
-        }
-        position.averageEntryPrice = this.computeAverageEntryPrice(
-            position,
-            order
-        );
-        position.realizedPnL = this.computeRealizedPnL(position, order);
+    async updatePosition(positionId: number, quantity: number, price: number) {
+        const position = await positionService.getByIdOrThrow(positionId);
 
         return this.positionRepository.save(position);
     }
@@ -91,38 +89,32 @@ class PositionService {
         return position.totalQuantity === 0;
     }
 
-    computeRealizedPnL(position: Position, order: Order): number {
+    /**
+     * This method should be called 
+     */
+    private computeNewRealizedPnL(
+        position: Position,
+        price: number,
+        quantity: number
+    ): number {
         if (position.averageEntryPrice === undefined) {
             throw new InternalServerError(
                 "Position averageEntryPrice is undefined, cannot compute RealizedPnL",
                 {
-                    orderId: order.id,
                     positionId: position.id,
+                    price: price,
+                    quantity: quantity,
                 }
             );
         }
 
-        if (order.price === undefined || order.quantity === undefined) {
-            throw new InternalServerError(
-                "Order price or quantity is undefined, cannot compute RealizedPnL",
-                {
-                    orderId: order.id,
-                    positionId: position.id,
-                }
-            );
-        }
-
-        if (order.side === OrderSide.SELL) {
-            return DecimalTransformer.from(
-                position.realizedPnL +
-                    (order.price - position.averageEntryPrice) * order.quantity
-            ).toFixed(8);
-        } else {
-            return position.realizedPnL;
-        }
+        return DecimalTransformer.from(
+            position.realizedPnL +
+                (price - position.averageEntryPrice) * quantity
+        ).toFixed(8);
     }
 
-    computeAverageEntryPrice(
+    private computeNewAverageEntryPrice(
         position: Position,
         order: Order
     ): number | undefined {

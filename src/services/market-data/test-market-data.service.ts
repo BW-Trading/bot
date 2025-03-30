@@ -3,11 +3,16 @@ import {
     MarketDataService,
     PlaceOrderResponse,
     PlaceOrderStatus,
+    TradingOrderStatus,
 } from "./market-data";
 
 class TestMarketDataService extends MarketDataService {
     availableMarketData: string[] = ["tickerPrice", "last5TickerPrices"];
 
+    updateOrder(order: Order): Promise<TradingOrderStatus> {
+        // Use the order to update the order on the test exchange
+        // Return the response
+    }
     getMarketData(marketData: string): Promise<any> {
         switch (marketData) {
             case "tickerPrice":
@@ -23,16 +28,17 @@ class TestMarketDataService extends MarketDataService {
         // Use the order to place an order on the test exchange
         // ...
 
-        // Return a response
+        // Return the response
         return Promise.resolve({
             status: PlaceOrderStatus.SUCCESS,
             code: "SUCCESS",
-            timestamp: new Date().getTime(),
             data: {
+                timestamp: new Date(),
                 orderId: Math.random().toString(),
+                fee: 1,
             },
             errorMessage: "",
-        });
+        } as PlaceOrderResponse);
     }
 
     cancelOrder(order: Order): Promise<any> {

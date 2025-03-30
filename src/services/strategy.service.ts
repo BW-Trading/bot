@@ -7,6 +7,7 @@ import { TradingStrategy } from "../strategies/trading-strategy";
 import { orderService } from "./order.service";
 import { OrderStatus } from "../entities/order.entity";
 import { positionService } from "./position.service";
+import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
 
 class StrategyService {
     private strategyRepository =
@@ -51,10 +52,10 @@ class StrategyService {
 
         // Sync the active orders
         strategyInstance.setActiveOrders(
-            await orderService.getStrategyOrders(
-                strategy.id,
-                OrderStatus.PENDING
-            )
+            await orderService.getStrategyOrders(strategy.id, [
+                OrderStatus.PENDING,
+                OrderStatus.PARTIALLY_FILLED,
+            ])
         );
     }
 
@@ -70,7 +71,7 @@ class StrategyService {
         const activeOrders = strategyInstance.getActiveOrders();
         const strategyOrders = await orderService.getStrategyOrders(
             strategy.id,
-            OrderStatus.PENDING
+            [OrderStatus.PENDING]
         );
 
         for (const order of strategyOrders) {
@@ -106,6 +107,27 @@ class StrategyService {
         strategy.active = false;
 
         return this.strategyRepository.save(strategy);
+    }
+
+    async getRunnableStrategies() {
+        return this.strategyRepository.find({
+            where: {
+                active: true,
+            },
+        });
+    }
+
+    async getExistingImplementations() {
+        return Object.values(StrategyInstanceEnum).map((strategyType) => {
+            return {
+                name: strategyType,
+            };
+        });
+    }
+
+    async createStrategy(asset:TradeableAssetEnum, strategyType: StrategyInstanceEnum, config: any, executionInterval: string, ) {
+        const strategy = new Strategy();
+
     }
 }
 

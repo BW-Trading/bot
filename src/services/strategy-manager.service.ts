@@ -21,7 +21,9 @@ export class StrategyManagerService {
         return StrategyManagerService.instance;
     }
 
-    async executeStrategy(strategy: Strategy, saveInstance = true) {
+    async executeStrategy(strategyId: number, saveInstance = true) {
+        const strategy = await strategyService.getByIdOrThrow(strategyId);
+
         // Get the active strategy instance if it exists or create a new one
         let activeStrategy = this.getActiveStrategy(strategy.id);
 
@@ -40,7 +42,21 @@ export class StrategyManagerService {
         const execution = await strategyExecutionService.create(strategy);
 
         try {
-            // Sync the strategy with the latest data
+            // Check if the strategy is already running
+            if (
+                await strategyExecutionService.hasActiveExecution(strategy.id)
+            ) {
+                strategyExecutionService.fail(
+                    execution,
+                    "Strategy is already running"
+                );
+                return;
+            }
+
+            // Update the orders state before syncing the instance
+            await orderService.updateOpenOrders(strategy);
+
+            // Sync the strategyInstance with the latest data
             await strategyService.sync(activeStrategy);
 
             // Retrieve the market data required by the strategy

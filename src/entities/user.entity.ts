@@ -5,12 +5,25 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
-    OneToOne,
-    JoinColumn,
 } from "typeorm";
-import { Wallet } from "./wallet.entity";
 import { MarketDataAccount } from "./market-data-account.entity";
 import { Strategy } from "./strategy.entity";
+import { AsyncLocalStorage } from "async_hooks";
+import { UnauthenticatedError } from "../errors/unauthenticated.error";
+
+const userContext = new AsyncLocalStorage<{ userId: string }>();
+
+export const setUserContext = (userId: string, callback: () => void) => {
+    userContext.run({ userId }, callback);
+};
+
+export const getContextUserId = (): string => {
+    const userId = userContext.getStore()?.userId;
+    if (!userId) {
+        throw new UnauthenticatedError();
+    }
+    return userId;
+};
 
 @Entity()
 export class User {
@@ -20,10 +33,10 @@ export class User {
     @Column({ unique: true })
     username!: string;
 
-    @Column({ select: false })
+    @Column()
     password!: string;
 
-    @Column({ select: false })
+    @Column()
     salt!: string;
 
     @CreateDateColumn({ type: "timestamp", nullable: true })

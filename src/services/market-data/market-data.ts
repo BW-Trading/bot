@@ -1,4 +1,4 @@
-import { Order } from "../../entities/order.entity";
+import { Order, OrderStatus, OrderType } from "../../entities/order.entity";
 
 export enum PlaceOrderStatus {
     SUCCESS = "SUCCESS",
@@ -14,6 +14,27 @@ export interface PlaceOrderResponse {
         fee: number;
     };
     errorMessage: string;
+}
+export enum OrderSide {
+    BUY = "BUY",
+    SELL = "SELL",
+}
+
+export interface TradingOrderStatus {
+    platform: string; // Ex: "binance", "kraken", "interactive_brokers"
+    orderId: string | number;
+    clientOrderId?: string; // ID côté client (optionnel)
+    symbol: string; // Ex: BTCUSDT ou AAPL
+    price: number; // Prix limite (0 si MARKET)
+    quantity: number; // Quantité d'actifs
+    executedQuantity: number; // Quantité exécutée
+    totalValue: number; // Montant total exécuté (prix * qty exécutée)
+    status: OrderStatus;
+    orderType: OrderType;
+    side: OrderSide;
+    createdAt: number; // Timestamp de création
+    updatedAt: number; // Timestamp de mise à jour
+    extra?: Record<string, any>; // Infos supplémentaires spécifiques à la plateforme
 }
 
 export abstract class MarketDataService {
@@ -50,5 +71,5 @@ export abstract class MarketDataService {
 
     abstract placeOrder(order: Order): Promise<PlaceOrderResponse>;
     abstract cancelOrder(order: Order): Promise<any>;
-    abstract getOrderStatus(order: Order): Promise<any>;
+    abstract getOrder(order: Order): Promise<TradingOrder>;
 }

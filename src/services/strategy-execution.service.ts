@@ -1,3 +1,4 @@
+import { In } from "typeorm";
 import {
     ExecutionStatusEnum,
     StrategyExecution,
@@ -10,6 +11,25 @@ class StrategyExecutionService {
         DatabaseManager.getInstance().appDataSource.getRepository(
             StrategyExecution
         );
+
+    async hasActiveExecution(strategyId: number) {
+        const execution = await this.strategyExecutionRepository.findOne({
+            where: {
+                strategy: {
+                    id: strategyId,
+                },
+                status: In([
+                    ExecutionStatusEnum.IN_PROGRESS,
+                    ExecutionStatusEnum.PENDING,
+                ]),
+            },
+
+            relations: {
+                strategy: true,
+            },
+        });
+        return !!execution;
+    }
 
     async create(strategy: Strategy) {
         const execution = new StrategyExecution();

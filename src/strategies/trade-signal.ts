@@ -5,8 +5,8 @@ export interface TradeSignal {
     action: OrderSide;
     type: OrderType;
     asset: TradeableAssetEnum;
-    price?: number;
-    quantity?: number;
+    price: number;
+    quantity: number;
     justification?: string;
     metadata?: Record<string, any>;
 }

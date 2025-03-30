@@ -5,12 +5,41 @@ import DatabaseManager from "./database-manager.service";
 class WalletService {
     walletRepository = DatabaseManager.getAppDataSource().getRepository(Wallet);
 
-    public async createWallet(): Promise<Wallet> {
+    public async createSaveWallet(): Promise<Wallet> {
         const wallet = new Wallet();
         wallet.balance = 0;
         wallet.reservedBalance = 0;
+        wallet.placedBalance = 0;
 
-        return this.walletRepository.save(wallet);
+        return await this.walletRepository.save(wallet);
+    }
+
+    public createWallet(): Wallet {
+        const wallet = new Wallet();
+        wallet.balance = 0;
+        wallet.reservedBalance = 0;
+        wallet.placedBalance = 0;
+        return wallet;
+    }
+
+    public async getByStrategyOrThrow(strategyId: number): Promise<Wallet> {
+        const wallet = await this.walletRepository.findOne({
+            where: {
+                marketDataAccount: {
+                    strategies: {
+                        id: strategyId,
+                    },
+                },
+            },
+        });
+
+        if (!wallet) {
+            throw new WalletError("Wallet not found for strategy", {
+                strategyId,
+            });
+        }
+
+        return wallet;
     }
 
     /**
@@ -33,6 +62,27 @@ class WalletService {
         wallet.reservedBalance += amount;
 
         return this.walletRepository.save(wallet);
+    }
+
+    public checkBalance(wallet: Wallet, amount: number, quantity: number) {
+        // Compute the total amount to check
+        const requiredBalance = amount * quantity;
+
+        // Compute estimated fee
+        const estimatedFee = 0.001; // Example fee, replace with actual fee calculation
+        const totalAmount = requiredBalance + estimatedFee;
+
+        // Check if the wallet has enough balance
+        if (wallet.balance < totalAmount) {
+            throw new WalletError("Insufficient balance", {
+                walletId: wallet.id,
+                balance: wallet.balance,
+                reservedBalance: wallet.reservedBalance,
+                amount,
+                quantity,
+                estimatedFee,
+            });
+        }
     }
 
     /**

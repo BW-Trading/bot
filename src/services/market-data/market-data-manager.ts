@@ -3,7 +3,7 @@ import { NotFoundError } from "../../errors/not-found-error";
 import { marketDataAccountService } from "../market-data-account.service";
 import { binanceMarketDataService } from "./binance-market-data.service";
 import { ExchangeApiEnum } from "./exchange-api.enum";
-import { MarketDataService } from "./market-data";
+import { MarketDataService, PlaceOrderResponse } from "./market-data";
 import { testMarketDataService } from "./test-market-data.service";
 
 export class MarketDataManager {
@@ -23,7 +23,10 @@ export class MarketDataManager {
         return marketDataService.retrieveMarketData(requiredMarketData);
     }
 
-    async placeOrder(strategyId: number, order: Order): Promise<any> {
+    async placeOrder(
+        strategyId: number,
+        order: Order
+    ): Promise<PlaceOrderResponse> {
         const marketDataAccount =
             await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
                 strategyId
