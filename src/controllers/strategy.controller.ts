@@ -264,23 +264,24 @@ export class StrategyController {
     //     }
     // }
 
-    // static async stopStrategy(req: Request, res: Response, next: NextFunction) {
-    //     try {
-    //         if (!req.session.user) {
-    //             throw new UnauthenticatedError();
-    //         }
+    static async stopStrategy(req: Request, res: Response, next: NextFunction) {
+        try {
+            const dto = plainToInstance(RunStrategyDto, req.params);
 
-    //         const dto = plainToInstance(RunStrategyDto, req.params);
-    //         const strategy = await strategyService.getUserStrategyByIdOrThrow(
-    //             req.session.user.user.id,
-    //             dto.id
-    //         );
-    //         StrategyManagerService.getInstance().stopStrategy(strategy.id);
-    //         sendResponse(res, new ResponseOkDto("Strategy stopped", 200));
-    //     } catch (error) {
-    //         next(error);
-    //     }
-    // }
+            // Check if strategy belongs to the user
+            const strategy = await strategyService.getUserStrategyByIdOrThrow(
+                dto.id
+            );
+
+            StrategySchedulerService.getInstance().stopScheduledStrategy(
+                strategy.id
+            );
+
+            sendResponse(res, new ResponseOkDto("Strategy stopped", 200));
+        } catch (error) {
+            next(error);
+        }
+    }
 
     static async archiveStrategy(
         req: Request,

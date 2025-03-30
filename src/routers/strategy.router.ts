@@ -76,11 +76,12 @@ strategyRouter.put(
     StrategyController.archiveStrategy
 );
 
-// strategyRouter.post(
-//     "/:id/stop",
-//     validateDto(StopStrategyDto, ValidationType.PARAMS),
-//     StrategyController.stopStrategy
-// );
+strategyRouter.post(
+    "/:id/stop",
+    validateDto(StopStrategyDto, ValidationType.PARAMS),
+    StrategyController.stopStrategy
+);
+
 // strategyRouter.get(
 //     "/:id/portfolio",
 //     validateDto(GetStrategyByIdPortfolioDto, ValidationType.PARAMS),
