@@ -2,13 +2,9 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    ManyToOne,
     OneToMany,
     CreateDateColumn,
-    OneToOne,
-    JoinColumn,
 } from "typeorm";
-import { Strategy } from "./strategy.entity";
 import { Order } from "./order.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 
@@ -16,10 +12,6 @@ import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 export class Position {
     @PrimaryGeneratedColumn()
     id!: number;
-
-    @OneToOne(() => Strategy, (strategy) => strategy.position)
-    @JoinColumn()
-    strategy!: Strategy;
 
     @Column({ type: "enum", enum: TradeableAssetEnum })
     asset!: TradeableAssetEnum;

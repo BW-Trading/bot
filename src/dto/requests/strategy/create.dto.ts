@@ -1,14 +1,7 @@
-import {
-    IsEnum,
-    IsJSON,
-    IsNumber,
-    IsObject,
-    IsOptional,
-    IsString,
-} from "class-validator";
+import { IsEnum, IsNumber, IsObject, IsString } from "class-validator";
 import { DTO } from "../../dto";
-import { StrategiesEnum } from "../../../entities/enums/strategies.enum";
 import { TradeableAssetEnum } from "../../../entities/enums/tradeable-asset.enum";
+import { StrategyInstanceEnum } from "../../../entities/enums/strategies.enum";
 
 export class CreateStrategyDto extends DTO {
     @IsString()
@@ -17,19 +10,18 @@ export class CreateStrategyDto extends DTO {
     @IsString()
     description!: string;
 
-    @IsEnum(StrategiesEnum)
-    strategyEnum!: StrategiesEnum;
+    @IsEnum(TradeableAssetEnum)
+    asset!: TradeableAssetEnum;
+
+    @IsEnum(StrategyInstanceEnum)
+    strategyType!: StrategyInstanceEnum;
 
     @IsObject({ message: "Data must be a valid JSON object" })
     config!: any;
 
-    @IsNumber()
-    interval!: number;
+    @IsString()
+    interval!: string;
 
-    @IsEnum(TradeableAssetEnum)
-    asset!: TradeableAssetEnum;
-
-    @IsOptional()
     @IsNumber()
-    balance?: number;
+    marketDataAccountId!: number;
 }

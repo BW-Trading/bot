@@ -8,11 +8,10 @@ import {
     OneToOne,
     OneToMany,
 } from "typeorm";
-import { StrategyInstanceEnum } from "../strategies/strategies.enum";
+import { StrategyInstanceEnum } from "./enums/strategies.enum";
 import { User } from "./user.entity";
 import { MarketDataAccount } from "./market-data-account.entity";
 import { Order } from "./order.entity";
-import { Position } from "./position.entity";
 import { StrategyExecution } from "./strategy-execution.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 
@@ -25,6 +24,12 @@ export enum StrategyInstanceStatusEnum {
 export class Strategy {
     @PrimaryGeneratedColumn()
     id!: number;
+
+    @Column({ unique: true })
+    name!: string;
+
+    @Column()
+    description!: string;
 
     @Column({ type: "enum", enum: TradeableAssetEnum })
     asset!: TradeableAssetEnum;
@@ -59,9 +64,6 @@ export class Strategy {
 
     @OneToMany(() => StrategyExecution, (execution) => execution.strategy)
     executions!: StrategyExecution[];
-
-    @OneToOne(() => Position, (position) => position.strategy)
-    position!: Position;
 
     @Column()
     executionInterval!: string; // Cron expression

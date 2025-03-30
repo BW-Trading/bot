@@ -71,5 +71,5 @@ export abstract class MarketDataService {
 
     abstract placeOrder(order: Order): Promise<PlaceOrderResponse>;
     abstract cancelOrder(order: Order): Promise<any>;
-    abstract getOrder(order: Order): Promise<TradingOrder>;
+    abstract getOrder(order: Order): Promise<TradingOrderStatus>;
 }

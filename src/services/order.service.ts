@@ -110,7 +110,7 @@ class OrderService {
             // Update the order with the response
             await this.placed(order, result);
             // Update the wallet
-            await walletService.res(wallet, order);
+            // await walletService.res(wallet, order);
         } else {
             await this.rejected(
                 order,
@@ -137,14 +137,13 @@ class OrderService {
 
         for (const order of orders) {
             try {
-                const result: PlaceOrderResponse =
-                    await marketDataManager.getOrderStatus(strategy.id, order);
-
-                if (result.status === PlaceOrderStatus.SUCCESS) {
-                    await this.updateOrder(order, result);
-                } else {
-                    logger.error(`Failed to update order ${order.id}`, result);
-                }
+                // const result: PlaceOrderResponse =
+                //     await marketDataManager.getOrderStatus(strategy.id, order);
+                // if (result.status === PlaceOrderStatus.SUCCESS) {
+                //     await this.updateOrder(order, result);
+                // } else {
+                //     logger.error(`Failed to update order ${order.id}`, result);
+                // }
             } catch (error) {
                 logger.error(
                     `Failed to update order ${order.id} for strategy ${strategy.id}`,

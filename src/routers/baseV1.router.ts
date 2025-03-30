@@ -10,7 +10,7 @@ baseV1Router.use("/auth", authRouter);
 
 baseV1Router.use("/user", userRouter);
 
-// baseV1Router.use("/strategy", strategyRouter);
+baseV1Router.use("/strategy", strategyRouter);
 
 // baseV1Router.use("/market-data", MarketDataRouter);
 

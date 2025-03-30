@@ -1,9 +1,16 @@
 import axios from "axios";
 import { BinanceFetchingError } from "../../errors/binance-fetching.error";
-import { MarketDataService, PlaceOrderResponse } from "./market-data";
+import {
+    MarketDataService,
+    PlaceOrderResponse,
+    TradingOrderStatus,
+} from "./market-data";
 import { Order } from "../../entities/order.entity";
 
 class BinanceMarketDataService extends MarketDataService {
+    getOrder(order: Order): Promise<TradingOrderStatus> {
+        throw new Error("Method not implemented.");
+    }
     getMarketData(marketData: string): Promise<any> {
         throw new Error("Method not implemented.");
     }

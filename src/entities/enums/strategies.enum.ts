@@ -1,4 +1,3 @@
-export enum StrategiesEnum {
+export enum StrategyInstanceEnum {
     TEST = "TEST",
-    MOVING_AVERAGE = "MOVING_AVERAGE",
 }

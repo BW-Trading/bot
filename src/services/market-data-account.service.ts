@@ -93,6 +93,18 @@ class MarketDataAccountService {
 
         return marketDataAccounts;
     }
+
+    async getUserMarketDataAccountById(
+        marketDataAccountId: number,
+        userId: string
+    ) {
+        return this.marketDataAccountRepository.findOne({
+            where: {
+                id: marketDataAccountId,
+                user: { id: userId },
+            },
+        });
+    }
 }
 
 export const marketDataAccountService = new MarketDataAccountService();

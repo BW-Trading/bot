@@ -7,12 +7,11 @@ import {
 } from "./market-data";
 
 class TestMarketDataService extends MarketDataService {
-    availableMarketData: string[] = ["tickerPrice", "last5TickerPrices"];
-
-    updateOrder(order: Order): Promise<TradingOrderStatus> {
-        // Use the order to update the order on the test exchange
-        // Return the response
+    getOrder(order: Order): Promise<TradingOrderStatus> {
+        throw new Error("Method not implemented.");
     }
+
+    availableMarketData: string[] = ["tickerPrice", "last5TickerPrices"];
     getMarketData(marketData: string): Promise<any> {
         switch (marketData) {
             case "tickerPrice":

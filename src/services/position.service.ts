@@ -13,7 +13,6 @@ class PositionService {
 
     async getOrCreatePosition(strategy: Strategy, asset: TradeableAssetEnum) {
         const position = await this.positionRepository.findOneBy({
-            strategy: { id: strategy.id },
             asset: asset,
         });
 
@@ -26,7 +25,6 @@ class PositionService {
 
     async getOrderPositionOrThrow(order: Order) {
         const position = await this.positionRepository.findOneBy({
-            strategy: { id: order.strategy.id },
             asset: order.asset,
         });
 
@@ -41,9 +39,7 @@ class PositionService {
     }
 
     async getStrategyPositionOrThrow(strategy: Strategy) {
-        const position = await this.positionRepository.findOneBy({
-            strategy: { id: strategy.id },
-        });
+        const position = await this.positionRepository.findOneBy({});
 
         if (!position) {
             throw new NotFoundError(
@@ -72,7 +68,6 @@ class PositionService {
 
     async createPosition(strategy: Strategy, asset: TradeableAssetEnum) {
         const position = new Position();
-        position.strategy = strategy;
         position.asset = asset;
         position.orders = [];
 
@@ -90,7 +85,7 @@ class PositionService {
     }
 
     /**
-     * This method should be called 
+     * This method should be called
      */
     private computeNewRealizedPnL(
         position: Position,

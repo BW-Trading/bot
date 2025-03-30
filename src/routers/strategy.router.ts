@@ -46,17 +46,17 @@ strategyRouter.post(
 
 strategyRouter.get("/running", StrategyController.getRunningStrategies);
 
-strategyRouter.get(
-    "/:id/orders",
-    validateDto(GetStrategyOrdersDto, ValidationType.PARAMS),
-    StrategyController.getOrders
-);
+// strategyRouter.get(
+//     "/:id/orders",
+//     validateDto(GetStrategyOrdersDto, ValidationType.PARAMS),
+//     StrategyController.getOrders
+// );
 
-strategyRouter.get(
-    "/:id/executions",
-    validateDto(GetStrategyExecutionDto, ValidationType.PARAMS),
-    StrategyController.getExecutions
-);
+// strategyRouter.get(
+//     "/:id/executions",
+//     validateDto(GetStrategyExecutionDto, ValidationType.PARAMS),
+//     StrategyController.getExecutions
+// );
 
 strategyRouter.get(
     "/:id",
@@ -64,11 +64,11 @@ strategyRouter.get(
     StrategyController.getStrategy
 );
 
-strategyRouter.post(
-    "/add-balance",
-    validateDto(RunStrategyDto, ValidationType.BODY),
-    StrategyController.addBalance
-);
+// strategyRouter.post(
+//     "/add-balance",
+//     validateDto(RunStrategyDto, ValidationType.BODY),
+//     StrategyController.addBalance
+// );
 
 strategyRouter.put(
     "/:id/archive",
@@ -76,15 +76,15 @@ strategyRouter.put(
     StrategyController.archiveStrategy
 );
 
-strategyRouter.post(
-    "/:id/stop",
-    validateDto(StopStrategyDto, ValidationType.PARAMS),
-    StrategyController.stopStrategy
-);
-strategyRouter.get(
-    "/:id/portfolio",
-    validateDto(GetStrategyByIdPortfolioDto, ValidationType.PARAMS),
-    StrategyController.getPortfolio
-);
+// strategyRouter.post(
+//     "/:id/stop",
+//     validateDto(StopStrategyDto, ValidationType.PARAMS),
+//     StrategyController.stopStrategy
+// );
+// strategyRouter.get(
+//     "/:id/portfolio",
+//     validateDto(GetStrategyByIdPortfolioDto, ValidationType.PARAMS),
+//     StrategyController.getPortfolio
+// );
 
 export default strategyRouter;
