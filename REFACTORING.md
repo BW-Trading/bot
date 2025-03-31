@@ -1,29 +1,9 @@
 # Trading bot entity and classes
 
-## Trading bot entity
+## Ameliorations
 
-User (use request context to get user id)
-MarketDataAccount
-Wallet
-Order
-Position
+L'asset n'a pas besoin d'être donné dans un TradeSignal puisque l'asset est déjà dans la stratégie.
 
-TradeLog
-Strategy
+validateConfig devrait être utilisé (static function ?) a la création de la stratégie pour checker la validité de la config.
 
-## Strategy
-
-abstract TradingStrategy
-
-## Services
-
-UserService
-MarketDataAccountService
-WalletService
-OrderService
-PositionService
-
-TradeLogService
-StrategyService
-
-StrategyManager
+Ajouter une estimation des frais pour valider l'ordre. On reserve la balance après validation

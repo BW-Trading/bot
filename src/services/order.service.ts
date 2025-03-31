@@ -13,6 +13,8 @@ import { logger } from "../loggers/logger";
 import { NotFoundError } from "../errors/not-found-error";
 import { In } from "typeorm";
 import { walletService } from "./wallet.service";
+import { CustomError } from "../errors/custom-error";
+import { ErrorHandlerService } from "./error-handler.service";
 
 class OrderService {
     private orderRepository =
@@ -84,38 +86,45 @@ class OrderService {
 
     async placeOrders(strategyId: number, tradeSignals: TradeSignal[]) {
         for (const tradeSignal of tradeSignals) {
-            try {
-                await this.placeOrder(strategyId, tradeSignal);
-            } catch (error) {
-                logger.error(
-                    `Failed to place order for strategy ${strategyId} and asset ${tradeSignal.asset}`,
-                    error
-                );
-            }
+            await this.placeOrder(strategyId, tradeSignal);
         }
     }
 
     async placeOrder(strategyId: number, tradeSignal: TradeSignal) {
-        await this.isOrderValid(strategyId, tradeSignal);
+        let order: Order;
+        let strategy: Strategy;
+        try {
+            await this.validateOrder(strategyId, tradeSignal);
+            strategy = await strategyService.getByIdOrThrow(strategyId);
+            order = await this.createOrder(strategy, tradeSignal);
+        } catch (error: any) {
+            ErrorHandlerService.getInstance().logError(error);
+            return;
+        }
 
-        const strategy = await strategyService.getByIdOrThrow(strategyId);
+        try {
+            const result: PlaceOrderResponse =
+                await marketDataManager.placeOrder(strategy.id, order);
 
-        const order = await this.createOrder(strategy, tradeSignal);
-        const result: PlaceOrderResponse = await marketDataManager.placeOrder(
-            strategy.id,
-            order
-        );
-
-        if (result.status === PlaceOrderStatus.SUCCESS) {
-            // Update the order with the response
-            await this.placed(order, result);
-            // Update the wallet
-            // await walletService.res(wallet, order);
-        } else {
-            await this.rejected(
-                order,
-                `${result.code} - ${result.errorMessage}`
-            );
+            if (result.status === PlaceOrderStatus.SUCCESS) {
+                await this.placed(order, result);
+                // Update the wallet
+                // await walletService.res(wallet, order);
+            } else {
+                await this.rejected(
+                    order,
+                    `${result.code} - ${result.errorMessage}`
+                );
+            }
+        } catch (error) {
+            if (error instanceof CustomError) {
+                await this.rejected(order, error.toJSON().toString());
+            } else {
+                this.rejected(
+                    order,
+                    "Failed to place order for an unknown reason"
+                );
+            }
         }
     }
 
@@ -182,16 +191,12 @@ class OrderService {
         }
     }
 
-    async isOrderValid(
+    async validateOrder(
         strategyId: number,
         tradeSignal: TradeSignal
     ): Promise<void> {
-        let wallet = await walletService.getByStrategyOrThrow(strategyId);
-        await walletService.checkBalance(
-            wallet,
-            tradeSignal.price,
-            tradeSignal.quantity
-        );
+        // Check with wallet service if the user has enough balance
+        // Potentially estimate the fee
     }
 }
 

@@ -1,3 +1,5 @@
+import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
+import { OrderSide, OrderType } from "../entities/order.entity";
 import { TradeSignal } from "./trade-signal";
 import { TradingStrategy } from "./trading-strategy";
 
@@ -12,6 +14,19 @@ export class TestTradingStrategy extends TradingStrategy {
         return;
     }
     public generateSignals(): TradeSignal[] {
-        throw new Error("Method not implemented.");
+        const signal: TradeSignal = {
+            action: OrderSide.BUY,
+            type: OrderType.LIMIT,
+            asset: TradeableAssetEnum.BTCUSDT,
+            price: 1,
+            quantity: 1,
+            justification: "Test signal",
+            metadata: {
+                test: "test",
+                test2: "test2",
+            },
+        };
+
+        return [signal];
     }
 }

@@ -1,6 +1,4 @@
-import { Strategy } from "../entities/strategy.entity";
 import { CustomError } from "../errors/custom-error";
-import { TradeSignal } from "../strategies/trade-signal";
 import { TradingStrategy } from "../strategies/trading-strategy";
 import { marketDataManager } from "./market-data/market-data-manager";
 import { orderService } from "./order.service";
@@ -56,7 +54,7 @@ export class StrategyManagerService {
             // Update the orders state before syncing the instance
             await orderService.updateOpenOrders(strategy);
 
-            // Sync the strategyInstance with the latest data
+            // Sync the strategyInstance with the latest data and order updates
             await strategyService.sync(activeStrategy);
 
             // Retrieve the market data required by the strategy
@@ -65,9 +63,9 @@ export class StrategyManagerService {
                 strategy.id,
                 activeStrategy.getRequiredMarketData()
             );
-
             // Analyze the market data and generate signals for processing
             activeStrategy.analyze(marketData);
+
             const signals = activeStrategy.generateSignals();
 
             // Save the strategy state after processing the signals
