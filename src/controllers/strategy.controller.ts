@@ -9,26 +9,23 @@ import {
 import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { plainToInstance } from "class-transformer";
 import { StrategyManagerService } from "../services/strategy-manager.service";
-import { AddBalanceStrategyDto } from "../dto/requests/strategy/add-balance.dto";
 import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
-import { StrategyNotActiveError } from "../errors/strategy-not-active.error";
 import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
-import { GetStrategyExecutionDto } from "../dto/requests/strategy/get-executions.dto";
-import { strategyExecutionService } from "../services/strategy-execution.service";
 import { StrategySchedulerService } from "../services/strategy-scheduler.service";
 
 export class StrategyController {
-    static getRunnableStrategies(
+    static async getRunnableStrategies(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            const strategies = strategyService.getExistingImplementations();
+            const strategies =
+                await strategyService.getExistingImplementations();
             sendResponse(
                 res,
                 new ResponseOkDto(

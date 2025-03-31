@@ -142,11 +142,7 @@ class StrategyService {
     }
 
     async getExistingImplementations() {
-        return Object.values(StrategyInstanceEnum).map((strategyType) => {
-            return {
-                name: strategyType,
-            };
-        });
+        return Object.values(StrategyInstanceEnum);
     }
 
     async createStrategy(

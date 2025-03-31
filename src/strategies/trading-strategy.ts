@@ -1,4 +1,5 @@
 import { Strategy } from "../entities/strategy.entity";
+import { MarketData } from "../services/market-data/market-data";
 import { TradeSignal } from "./trade-signal";
 
 export enum SignalAction {
@@ -28,7 +29,7 @@ export abstract class TradingStrategy {
     public abstract validateConfig(config: any): any;
 
     // Fonction qui retourne les types de données nécessaires pour cette stratégie ex: ["orderBook", "tickerPrice"]
-    public abstract getRequiredMarketData(): string[];
+    public abstract getRequiredMarketData(): MarketData[];
 
     // Analyse les données de marché et met à jour l'état
     public abstract analyze(marketData: any): void;

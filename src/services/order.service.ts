@@ -93,6 +93,8 @@ class OrderService {
     async placeOrder(strategyId: number, tradeSignal: TradeSignal) {
         let order: Order;
         let strategy: Strategy;
+
+        // Check if the strategy is active & create the order
         try {
             await this.validateOrder(strategyId, tradeSignal);
             strategy = await strategyService.getByIdOrThrow(strategyId);
@@ -102,6 +104,7 @@ class OrderService {
             return;
         }
 
+        // Try to place the order
         try {
             const result: PlaceOrderResponse =
                 await marketDataManager.placeOrder(strategy.id, order);

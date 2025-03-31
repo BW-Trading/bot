@@ -35,22 +35,21 @@ export class StrategyManagerService {
         if (saveInstance) {
             this.addActiveStrategy(strategy.id, activeStrategy);
         }
+        let execution;
+        // Check if the strategy is already running
+        if (await strategyExecutionService.hasActiveExecution(strategy.id)) {
+            execution = await strategyExecutionService.create(strategy);
+            strategyExecutionService.fail(
+                execution,
+                "Strategy is already running"
+            );
+            return;
+        }
 
         // Create a StrategyExecution record
-        const execution = await strategyExecutionService.create(strategy);
+        execution = await strategyExecutionService.create(strategy);
 
         try {
-            // Check if the strategy is already running
-            if (
-                await strategyExecutionService.hasActiveExecution(strategy.id)
-            ) {
-                strategyExecutionService.fail(
-                    execution,
-                    "Strategy is already running"
-                );
-                return;
-            }
-
             // Update the orders state before syncing the instance
             await orderService.updateOpenOrders(strategy);
 

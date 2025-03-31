@@ -37,25 +37,34 @@ export interface TradingOrderStatus {
     extra?: Record<string, any>; // Infos supplémentaires spécifiques à la plateforme
 }
 
+export enum MarketData {
+    TICKER_PRICE = "tickerPrice",
+    LAST_5_TICKER_PRICES = "last5TickerPrices",
+    ORDER_BOOK = "orderBook",
+    CANDLESTICK_DATA = "candlestickData",
+    TRADE_HISTORY = "tradeHistory",
+}
+
 export abstract class MarketDataService {
-    abstract availableMarketData: string[];
+    abstract availableMarketData: MarketData[];
+    abstract exchangeName: string;
 
     /**
      * Returns true if the given marketData string label is available
      */
-    hasMarketData(marketData: string): boolean {
+    hasMarketData(marketData: MarketData): boolean {
         return this.availableMarketData.includes(marketData);
     }
 
     /**
      * Returns an object with the market data associated to the given list of marketData string labels
      */
-    retrieveMarketData(requiredMarketData: string[]): Promise<any> {
+    retrieveMarketData(requiredMarketData: MarketData[]): Promise<any> {
         const marketData: { [key: string]: any } = {};
 
         for (const data of requiredMarketData) {
             if (!this.hasMarketData(data)) {
-                throw new Error(`Market data ${data} is not available`);
+                throw new Error(`Market data ${data} is not available `);
             }
 
             marketData[data] = this.getMarketData(data);

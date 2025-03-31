@@ -1,5 +1,6 @@
 import { Order } from "../../entities/order.entity";
 import {
+    MarketData,
     MarketDataService,
     PlaceOrderResponse,
     PlaceOrderStatus,
@@ -7,19 +8,24 @@ import {
 } from "./market-data";
 
 class TestMarketDataService extends MarketDataService {
+    exchangeName: string = "testExchange";
+    availableMarketData: MarketData[] = [
+        MarketData.TICKER_PRICE,
+        MarketData.LAST_5_TICKER_PRICES,
+    ];
+
     getOrder(order: Order): Promise<TradingOrderStatus> {
         throw new Error("Method not implemented.");
     }
 
-    availableMarketData: string[] = ["tickerPrice", "last5TickerPrices"];
-    getMarketData(marketData: string): Promise<any> {
+    getMarketData(marketData: MarketData): Promise<any> {
         switch (marketData) {
-            case "tickerPrice":
+            case MarketData.TICKER_PRICE:
                 return Promise.resolve(100);
-            case "last5TickerPrices":
+            case MarketData.LAST_5_TICKER_PRICES:
                 return Promise.resolve([100, 101, 102, 103, 104]);
             default:
-                return Promise.reject("Market data not available");
+                return Promise.reject({ message: "Market data not available" });
         }
     }
 
@@ -30,20 +36,17 @@ class TestMarketDataService extends MarketDataService {
         // Return the response
         return Promise.resolve({
             status: PlaceOrderStatus.SUCCESS,
-            code: "SUCCESS",
+            code: "000000",
             data: {
                 timestamp: new Date(),
                 orderId: Math.random().toString(),
                 fee: 1,
             },
             errorMessage: "",
-        } as PlaceOrderResponse);
+        });
     }
 
     cancelOrder(order: Order): Promise<any> {
-        throw new Error("Method not implemented.");
-    }
-    getOrderStatus(order: Order): Promise<any> {
         throw new Error("Method not implemented.");
     }
 }
