@@ -110,18 +110,25 @@ class OrderService {
                 await marketDataManager.placeOrder(strategy.id, order);
 
             if (result.status === PlaceOrderStatus.SUCCESS) {
-                await this.placed(order, result);
-                // Update the wallet
-                // await walletService.res(wallet, order);
+                const placedOrder = await this.placed(order, result);
+
+                const wallet = await walletService.getByStrategyIdOrThrow(
+                    strategyId
+                );
+
+                await walletService.reserveBalance(
+                    wallet,
+                    this.computeOrderTotalCost(order, result.data.fee)
+                );
             } else {
                 await this.rejected(
                     order,
                     `${result.code} - ${result.errorMessage}`
                 );
             }
-        } catch (error) {
+        } catch (error: any) {
             if (error instanceof CustomError) {
-                await this.rejected(order, error.toJSON().toString());
+                await this.rejected(order, JSON.stringify(error.toLogObject()));
             } else {
                 this.rejected(
                     order,
@@ -192,6 +199,10 @@ class OrderService {
         } else {
             logger.error(`Failed to cancel order ${order.id}`, result);
         }
+    }
+
+    computeOrderTotalCost(order: Order, fee: number = 0): number {
+        return order.price * order.quantity + fee;
     }
 
     async validateOrder(
