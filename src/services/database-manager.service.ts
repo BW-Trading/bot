@@ -15,6 +15,10 @@ class DatabaseManager {
         return DatabaseManager.instance;
     }
 
+    public static getAppDataSource(): DataSource {
+        return DatabaseManager.getInstance().appDataSource;
+    }
+
     private constructor() {
         this.appDataSource = appDataSource;
     }

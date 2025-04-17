@@ -1,34 +1,33 @@
 import {
     Column,
     Entity,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from "typeorm";
+import { MarketDataAccount } from "./market-data-account.entity";
 import { DecimalTransformer } from "../utils/decimal-transformer";
 
 @Entity()
-export class Portfolio {
+export class Wallet {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column("decimal", {
-        precision: 16,
-        scale: 8,
-        default: 0,
-        transformer: DecimalTransformer,
-    })
-    totalBalance!: number;
+    @OneToOne(
+        () => MarketDataAccount,
+        (marketDataAccount) => marketDataAccount.wallet
+    )
+    marketDataAccount!: MarketDataAccount;
 
     @Column("decimal", {
-        precision: 16,
+        precision: 18,
         scale: 8,
-        default: 0,
         transformer: DecimalTransformer,
     })
-    availableBalance!: number;
+    balance!: number;
 
     @Column("decimal", {
-        precision: 16,
+        precision: 18,
         scale: 8,
         default: 0,
         transformer: DecimalTransformer,
@@ -36,16 +35,13 @@ export class Portfolio {
     reservedBalance!: number;
 
     @Column("decimal", {
-        precision: 16,
+        precision: 18,
         scale: 8,
         default: 0,
         transformer: DecimalTransformer,
     })
-    amount!: number;
+    placedBalance!: number;
 
-    @Column({ default: 0 })
-    inputBalance!: number;
-
-    @UpdateDateColumn()
+    @UpdateDateColumn({ type: "timestamp" })
     updatedAt!: Date;
 }

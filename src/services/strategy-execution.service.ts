@@ -1,6 +1,8 @@
-import { StrategyExecutionStatusEnum } from "../entities/enums/strategy-execution-status.enum";
-import { MarketAction } from "../entities/market-action.entity";
-import { StrategyExecution } from "../entities/strategy-execution.entity";
+import { In } from "typeorm";
+import {
+    ExecutionStatusEnum,
+    StrategyExecution,
+} from "../entities/strategy-execution.entity";
 import { Strategy } from "../entities/strategy.entity";
 import DatabaseManager from "./database-manager.service";
 
@@ -10,33 +12,54 @@ class StrategyExecutionService {
             StrategyExecution
         );
 
-    create(strategy: Strategy) {
-        let execution = new StrategyExecution();
-        execution.status = StrategyExecutionStatusEnum.PENDING;
+    async hasActiveExecution(strategyId: number) {
+        const execution = await this.strategyExecutionRepository.findOne({
+            where: {
+                strategy: {
+                    id: strategyId,
+                },
+                status: In([
+                    ExecutionStatusEnum.IN_PROGRESS,
+                    ExecutionStatusEnum.PENDING,
+                ]),
+            },
+
+            relations: {
+                strategy: true,
+            },
+        });
+        return !!execution;
+    }
+
+    async create(strategy: Strategy) {
+        const execution = new StrategyExecution();
+        execution.status = ExecutionStatusEnum.PENDING;
         execution.strategy = strategy;
-        return this.strategyExecutionRepository.save(execution);
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 
-    execute(execution: StrategyExecution) {
-        execution.status = StrategyExecutionStatusEnum.EXECUTING;
-        return this.strategyExecutionRepository.save(execution);
+    async start(execution: StrategyExecution, inputData: any) {
+        execution.status = ExecutionStatusEnum.IN_PROGRESS;
+        execution.startedAt = new Date();
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 
-    complete(
-        execution: StrategyExecution,
-        resultingMarketActions: MarketAction[]
-    ) {
-        execution.status = StrategyExecutionStatusEnum.COMPLETED;
-        execution.resultingMarketActions = resultingMarketActions;
+    async complete(execution: StrategyExecution, resultData: any) {
+        execution.status = ExecutionStatusEnum.COMPLETED;
         execution.completedAt = new Date();
-        return this.strategyExecutionRepository.save(execution);
+        execution.resultData = resultData;
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 
-    fail(execution: StrategyExecution, error: Error) {
-        execution.status = StrategyExecutionStatusEnum.FAILED;
+    async fail(execution: StrategyExecution, errorMessage: string) {
+        execution.status = ExecutionStatusEnum.FAILED;
+        execution.errorMessage = errorMessage;
         execution.failedAt = new Date();
-        execution.error = error.message;
-        return this.strategyExecutionRepository.save(execution);
+
+        return await this.strategyExecutionRepository.save(execution);
     }
 }
 

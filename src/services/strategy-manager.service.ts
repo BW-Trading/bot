@@ -1,24 +1,17 @@
-import { ITradingStrategy } from "../strategies/trading-strategy.interface";
-import { NotFoundError } from "../errors/not-found-error";
-import { logger } from "../loggers/logger";
-import { strategyService } from "./strategy.service";
-import { Strategy } from "../entities/strategy.entity";
+import { CustomError } from "../errors/custom-error";
+import { TradingStrategy } from "../strategies/trading-strategy";
+import { marketDataManager } from "./market-data/market-data-manager";
+import { orderService } from "./order.service";
 import { strategyExecutionService } from "./strategy-execution.service";
-import { marketActionService } from "./market-action.service";
-import { MarketAction } from "../entities/market-action.entity";
-import { MarketActionEnum } from "../entities/enums/market-action.enum";
-import { StrategyExecution } from "../entities/strategy-execution.entity";
-
-interface StrategyInstance {
-    instance: ITradingStrategy;
-    intervalId: NodeJS.Timeout;
-    userId: string;
-}
+import { strategyService } from "./strategy.service";
 
 export class StrategyManagerService {
     private static instance: StrategyManagerService;
-    private constructor() {} // Pour empêcher l'instanciation de la classe -> Il faut passer par la méthode statique getInstance
-    static getInstance(): StrategyManagerService {
+    private activateStrategies: Map<number, TradingStrategy> = new Map(); // StrategyId, TradingStrategy
+
+    private constructor() {}
+
+    static getInstance() {
         if (!StrategyManagerService.instance) {
             StrategyManagerService.instance = new StrategyManagerService();
         }
@@ -26,179 +19,88 @@ export class StrategyManagerService {
         return StrategyManagerService.instance;
     }
 
-    private strategies: Map<number, StrategyInstance> = new Map();
+    async executeStrategy(strategyId: number, saveInstance = true) {
+        const strategy = await strategyService.getByIdOrThrow(strategyId);
 
-    async isRunning(strategyId: number) {
-        return this.strategies.has(strategyId);
-    }
+        // Get the active strategy instance if it exists or create a new one
+        let activeStrategy = this.getActiveStrategy(strategy.id);
 
-    async runOnce(strategy: Strategy) {
-        const strategyClass = strategyService.getStrategyClass(
-            strategy.strategy
-        );
+        if (!activeStrategy) {
+            activeStrategy = await strategyService.instantiateStrategy(
+                strategy
+            );
+        }
 
-        const strategyInstance = new strategyClass(strategy);
-
-        strategyInstance.start();
-
-        let currentExecution;
-        try {
-            currentExecution = await strategyExecutionService.create(strategy);
-        } catch (error) {
-            logger.error(
-                `Error creating execution for strategy ${strategy.id}`
+        // Save the active strategy instance if required
+        if (saveInstance) {
+            this.addActiveStrategy(strategy.id, activeStrategy);
+        }
+        let execution;
+        // Check if the strategy is already running
+        if (await strategyExecutionService.hasActiveExecution(strategy.id)) {
+            execution = await strategyExecutionService.create(strategy);
+            strategyExecutionService.fail(
+                execution,
+                "Strategy is already running"
             );
             return;
         }
 
+        // Create a StrategyExecution record
+        execution = await strategyExecutionService.create(strategy);
+
         try {
-            const execution = await strategyExecutionService.execute(
-                currentExecution
+            // Update the orders state before syncing the instance
+            await orderService.updateOpenOrders(strategy);
+
+            // Sync the strategyInstance with the latest data and order updates
+            await strategyService.sync(activeStrategy);
+
+            // Retrieve the market data required by the strategy
+            // The market data is retrieve independently from the strategy execution to avoid blocking the execution and improve performance
+            const marketData = await marketDataManager.retrieveMarketData(
+                strategy.id,
+                activeStrategy.getRequiredMarketData()
             );
+            // Analyze the market data and generate signals for processing
+            activeStrategy.analyze(marketData);
 
-            const resultingMarketActions = await strategyInstance.run();
+            const signals = activeStrategy.generateSignals();
 
-            await this.executeSaveMarketActions(
-                strategy,
-                execution,
-                resultingMarketActions
-            );
+            // Save the strategy state after processing the signals
+            await strategyService.save(activeStrategy);
 
-            await strategyExecutionService.complete(
-                execution,
-                resultingMarketActions
-            );
-        } catch (error: any) {
-            await strategyExecutionService.fail(currentExecution, error);
-        } finally {
-            strategyInstance.stop();
-        }
-    }
+            // Compute the signals and complete the execution
+            await orderService.placeOrders(strategy.id, signals);
 
-    async startStrategy(strategy: Strategy, userId: string) {
-        if (this.strategies.has(strategy.id)) {
-            logger.warn(`Strategy ${strategy.id} is already running`);
-        }
-
-        const strategyClass = strategyService.getStrategyClass(
-            strategy.strategy
-        );
-
-        const strategyInstance = new strategyClass(strategy);
-
-        const intervalId = setInterval(async () => {
-            if (strategyInstance.getRunning()) {
-                logger.warn(`Strategy ${strategy.id} is already running`);
-                return;
-            }
-
-            strategyInstance.start();
-
-            let currentExecution;
-            try {
-                currentExecution = await strategyExecutionService.create(
-                    strategy
-                );
-            } catch (error) {
-                logger.error(
-                    `Error creating execution for strategy ${strategy.id}`
-                );
-                return;
-            }
-
-            try {
-                const execution = await strategyExecutionService.execute(
-                    currentExecution
-                );
-
-                const resultingMarketActions = await strategyInstance.run();
-
-                await this.executeSaveMarketActions(
-                    strategy,
+            await strategyExecutionService.complete(execution, {
+                signals: signals,
+                state: activeStrategy.getState(),
+            });
+        } catch (error) {
+            if (error instanceof CustomError) {
+                strategyExecutionService.fail(
                     execution,
-                    resultingMarketActions
+                    error.toLogObject().toString()
                 );
-
-                await strategyExecutionService.complete(
+            } else {
+                strategyExecutionService.fail(
                     execution,
-                    resultingMarketActions
+                    "An unexpected error occurred while executing the strategy"
                 );
-            } catch (error: any) {
-                await strategyExecutionService.fail(currentExecution, error);
-            } finally {
-                strategyInstance.stop();
             }
-        }, strategy.interval);
-
-        this.strategies.set(strategy.id, {
-            instance: strategyInstance,
-            intervalId,
-            userId: userId,
-        });
-        return intervalId;
-    }
-
-    stopStrategy(strategyId: number) {
-        const strategyInstance = this.strategies.get(strategyId);
-        if (!strategyInstance) {
-            throw new NotFoundError(
-                "Strategy",
-                "Strategy not found",
-                strategyId.toString()
-            );
         }
-
-        clearInterval(strategyInstance.intervalId);
-        this.strategies.delete(strategyId);
     }
 
-    stopAllStrategies() {
-        this.strategies.forEach(({ intervalId }) => clearInterval(intervalId));
-        this.strategies.clear();
+    getActiveStrategy(strategyId: number) {
+        return this.activateStrategies.get(strategyId);
     }
 
-    getRunningStrategies(userId: string): ITradingStrategy[] {
-        return Array.from(this.strategies.values())
-            .filter((strategyInstance) => strategyInstance.userId === userId)
-            .map((strategyInstance) => strategyInstance.instance);
+    addActiveStrategy(strategyId: number, tradingStrategy: TradingStrategy) {
+        this.activateStrategies.set(strategyId, tradingStrategy);
     }
 
-    async executeSaveMarketActions(
-        strategy: Strategy,
-        execution: StrategyExecution,
-        marketActions: any[]
-    ) {
-        marketActions.forEach(async (action: MarketAction) => {
-            try {
-                switch (action.action) {
-                    case MarketActionEnum.BUY:
-                        await strategyService.buyAsset(
-                            strategy.id,
-                            action.price,
-                            action.amount
-                        );
-                        break;
-                    case MarketActionEnum.SELL:
-                        await strategyService.sellAsset(
-                            strategy.id,
-                            action.price,
-                            action.amount
-                        );
-                        break;
-                    case MarketActionEnum.HOLD:
-                        break;
-                    default:
-                        logger.error(`Unknown action ${action.action}`);
-                        break;
-                }
-
-                await marketActionService.executed(action);
-            } catch (error: any) {
-                await marketActionService.fail(action, error.message);
-            } finally {
-                action.strategyExecution = execution;
-                await marketActionService.save(marketActions);
-            }
-        });
+    removeActiveStrategy(strategyId: number) {
+        this.activateStrategies.delete(strategyId);
     }
 }

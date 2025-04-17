@@ -1,68 +1,79 @@
 import {
-    Column,
     Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    OneToOne,
     PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    ManyToOne,
+    OneToOne,
+    OneToMany,
 } from "typeorm";
-import { StrategiesEnum } from "./enums/strategies.enum";
-import { StrategyExecution } from "./strategy-execution.entity";
-import { Portfolio } from "./portfolio.entity";
-import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
+import { StrategyInstanceEnum } from "./enums/strategies.enum";
 import { User } from "./user.entity";
-import { CleanObject } from "./clean-object";
+import { MarketDataAccount } from "./market-data-account.entity";
+import { Order } from "./order.entity";
+import { StrategyExecution } from "./strategy-execution.entity";
+import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
+
+export enum StrategyInstanceStatusEnum {
+    ACTIVE = "active",
+    STOPPED = "stopped",
+}
 
 @Entity()
-export class Strategy extends CleanObject {
+export class Strategy {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
+    @Column({ unique: true })
     name!: string;
 
     @Column()
     description!: string;
 
-    @Column({ type: "enum", enum: StrategiesEnum })
-    strategy!: StrategiesEnum;
-
-    @Column("simple-json", { default: {} })
-    config!: any;
-
-    @Column()
-    interval!: number;
-
     @Column({ type: "enum", enum: TradeableAssetEnum })
     asset!: TradeableAssetEnum;
-
-    @Column({ default: true })
-    isActive!: boolean;
-
-    @OneToMany(() => StrategyExecution, (execution) => execution.strategy)
-    @JoinColumn()
-    executions!: StrategyExecution[];
-
-    @OneToOne(() => Portfolio)
-    @JoinColumn()
-    portfolio!: Portfolio;
 
     @ManyToOne(() => User, (user) => user.strategies)
     user!: User;
 
-    toJson(): Record<string, any> {
-        return {
-            id: this.id,
-            name: this.name,
-            description: this.description,
-            strategy: this.strategy,
-            config: this.config,
-            interval: this.interval,
-            asset: this.asset,
-            isActive: this.isActive,
-            executions: this.executions,
-            portfolio: this.portfolio,
-        };
-    }
+    @Column({ type: "enum", enum: StrategyInstanceEnum })
+    strategyType!: StrategyInstanceEnum;
+
+    @Column("json", { default: {} })
+    config!: any;
+
+    @Column("json", { default: {} })
+    state!: any;
+
+    @Column({
+        type: "enum",
+        enum: StrategyInstanceStatusEnum,
+        default: StrategyInstanceStatusEnum.STOPPED,
+    })
+    status!: StrategyInstanceStatusEnum;
+
+    @OneToMany(() => Order, (order) => order.strategy)
+    orders!: Order[];
+
+    @ManyToOne(
+        () => MarketDataAccount,
+        (marketDataAccount) => marketDataAccount.strategies
+    )
+    marketDataAccount!: MarketDataAccount;
+
+    @OneToMany(() => StrategyExecution, (execution) => execution.strategy)
+    executions!: StrategyExecution[];
+
+    @Column()
+    executionInterval!: string; // Cron expression
+
+    @CreateDateColumn()
+    createdAt!: Date;
+
+    @UpdateDateColumn()
+    updatedAt!: Date;
+
+    @Column({ default: true })
+    active!: boolean;
 }

@@ -11,6 +11,7 @@ export const appDataSource = new DataSource({
     database: appEnv.database.name,
     synchronize: true,
     logging: false,
+    timezone: "UTC",
     entities: [join(__dirname, "entities", "*.entity.{ts,js}")],
     migrations: [join(__dirname, "migrations", "*.{ts,js}")],
 });

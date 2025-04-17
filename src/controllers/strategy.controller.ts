@@ -2,28 +2,30 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/send-response";
 import { ResponseOkDto } from "../dto/responses/response-ok.dto";
 import { strategyService } from "../services/strategy.service";
-import { Strategy } from "../entities/strategy.entity";
+import {
+    Strategy,
+    StrategyInstanceStatusEnum,
+} from "../entities/strategy.entity";
 import { CreateStrategyDto } from "../dto/requests/strategy/create.dto";
 import { plainToInstance } from "class-transformer";
 import { StrategyManagerService } from "../services/strategy-manager.service";
-import { AddBalanceStrategyDto } from "../dto/requests/strategy/add-balance.dto";
-import { Portfolio } from "../entities/portfolio.entity";
 import { RunStrategyOnceDto } from "../dto/requests/strategy/run-once.dto";
 import { RunStrategyDto } from "../dto/requests/strategy/run.dto";
-import { StrategyNotActiveError } from "../errors/strategy-not-active.error";
 import { ArchiveStrategyDto } from "../dto/requests/strategy/archive.dto";
 import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
+import { StrategySchedulerService } from "../services/strategy-scheduler.service";
 
 export class StrategyController {
-    static getRunnableStrategies(
+    static async getRunnableStrategies(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            const strategies = strategyService.getRunnableStrategies();
+            const strategies =
+                await strategyService.getExistingImplementations();
             sendResponse(
                 res,
                 new ResponseOkDto(
@@ -40,7 +42,7 @@ export class StrategyController {
     static async getStrategy(req: Request, res: Response, next: NextFunction) {
         try {
             const dto = plainToInstance(GetStrategyByIdDto, req.params);
-            const strategy = await strategyService.getStrategyByIdOrThrow(
+            const strategy = await strategyService.getUserStrategyByIdOrThrow(
                 dto.id
             );
             sendResponse(
@@ -58,18 +60,14 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
-
             const dto: CreatedStrategyDto = plainToInstance(
                 CreatedStrategyDto,
                 req.query
             );
 
             const strategies = await strategyService.getUserStrategies(
-                req.session.user.user.id,
-                dto.isActive
+                dto.isActive,
+                StrategyInstanceStatusEnum.STOPPED
             );
 
             sendResponse(
@@ -101,14 +99,13 @@ export class StrategyController {
             );
 
             const strategy = await strategyService.createStrategy(
-                req.session.user.user.id,
                 dto.name,
                 dto.description,
                 dto.asset,
-                dto.strategyEnum,
+                dto.strategyType,
                 dto.config,
                 dto.interval,
-                dto.balance
+                dto.marketDataAccountId
             );
 
             sendResponse(
@@ -120,70 +117,62 @@ export class StrategyController {
         }
     }
 
+    /**
+     * Schedules the strategy to run at the given interval.
+     */
     static async runStrategy(req: Request, res: Response, next: NextFunction) {
         try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
-
             const dto = plainToInstance(RunStrategyDto, req.params);
 
             const strategy = await strategyService.getUserStrategyByIdOrThrow(
-                req.session.user.user.id,
                 dto.id
             );
 
-            if (!strategy.isActive) {
-                throw new StrategyNotActiveError(strategy.id);
-            }
-
-            StrategyManagerService.getInstance().startStrategy(
-                strategy,
-                req.session.user.user.id
+            StrategySchedulerService.getInstance().scheduleStrategy(
+                strategy.id,
+                strategy.executionInterval
             );
+
             sendResponse(res, new ResponseOkDto("Strategy started", 200));
         } catch (error) {
             next(error);
         }
     }
 
+    /**
+     * Executes the strategy once. No scheduling is done.
+     */
     static async runOnce(req: Request, res: Response, next: NextFunction) {
         try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
-
             const dto = plainToInstance(RunStrategyOnceDto, req.params);
             const strategy = await strategyService.getUserStrategyByIdOrThrow(
-                req.session.user.user.id,
                 dto.id
             );
 
-            if (!strategy.isActive) {
-                throw new StrategyNotActiveError(strategy.id);
-            }
-
-            StrategyManagerService.getInstance().runOnce(strategy);
+            StrategyManagerService.getInstance().executeStrategy(
+                strategy.id,
+                false
+            );
             sendResponse(res, new ResponseOkDto("Strategy executed", 200));
         } catch (error) {
             next(error);
         }
     }
 
+    /**
+     * Returns all running strategies for the user :
+     * active = true and status = StrategyInstanceStatusEnum.ACTIVE
+     */
     static async getRunningStrategies(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
-
-            const runningStrategies =
-                StrategyManagerService.getInstance().getRunningStrategies(
-                    req.session.user.user.id
-                );
+            const runningStrategies = strategyService.getUserStrategies(
+                true,
+                StrategyInstanceStatusEnum.ACTIVE
+            );
 
             sendResponse(
                 res,
@@ -198,84 +187,93 @@ export class StrategyController {
         }
     }
 
-    static async getOrders(req: Request, res: Response, next: NextFunction) {
-        try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
+    // static async getOrders(req: Request, res: Response, next: NextFunction) {
+    //     try {
+    //         if (!req.session.user) {
+    //             throw new UnauthenticatedError();
+    //         }
 
-            const id = parseInt(req.params.id);
-            const orders = await strategyService.getOrdersForUserStrategy(
-                req.session.user.user.id,
-                id
-            );
-            sendResponse(
-                res,
-                new ResponseOkDto("Orders retrieved", 200, orders)
-            );
-        } catch (error) {
-            next(error);
-        }
-    }
+    //         const id = parseInt(req.params.id);
+    //         const openOrders =
+    //             await marketActionService.getMarketActionsForUserStrategy(
+    //                 req.session.user.user.id,
+    //                 id,
+    //                 [
+    //                     MarketActionStatusEnum.OPEN,
+    //                     MarketActionStatusEnum.CLOSED,
+    //                     MarketActionStatusEnum.CANCELLED,
+    //                     MarketActionStatusEnum.PENDING,
+    //                 ]
+    //             );
 
-    static async getPortfolio(req: Request, res: Response, next: NextFunction) {
-        try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
+    //         sendResponse(
+    //             res,
+    //             new ResponseOkDto("Orders retrieved", 200, openOrders)
+    //         );
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 
-            const id = parseInt(req.params.id);
-            const portfolio = await strategyService.getPortfolioForUserStrategy(
-                req.session.user.user.id,
-                id
-            );
-            sendResponse(
-                res,
-                new ResponseOkDto("Portfolio retrieved", 200, portfolio)
-            );
-        } catch (error) {
-            next(error);
-        }
-    }
+    // static async getPortfolio(req: Request, res: Response, next: NextFunction) {
+    //     try {
+    //         if (!req.session.user) {
+    //             throw new UnauthenticatedError();
+    //         }
 
-    static async addBalance(req: Request, res: Response, next: NextFunction) {
-        try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
+    //         const id = parseInt(req.params.id);
+    //         const portfolio = await strategyService.getPortfolioForUserStrategy(
+    //             req.session.user.user.id,
+    //             id
+    //         );
+    //         sendResponse(
+    //             res,
+    //             new ResponseOkDto("Portfolio retrieved", 200, portfolio)
+    //         );
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 
-            const dto: AddBalanceStrategyDto = plainToInstance(
-                AddBalanceStrategyDto,
-                req.body
-            );
+    // static async addBalance(req: Request, res: Response, next: NextFunction) {
+    //     try {
+    //         if (!req.session.user) {
+    //             throw new UnauthenticatedError();
+    //         }
 
-            const portfolio = await strategyService.addBalance(
-                req.session.user.user.id,
-                dto.id,
-                dto.amount
-            );
+    //         const dto: AddBalanceStrategyDto = plainToInstance(
+    //             AddBalanceStrategyDto,
+    //             req.body
+    //         );
 
-            sendResponse(
-                res,
-                new ResponseOkDto<Portfolio>("Balance added", 200, portfolio)
-            );
-        } catch (error) {
-            next(error);
-        }
-    }
+    //         const portfolio = await strategyService.addBalance(
+    //             req.session.user.user.id,
+    //             dto.id,
+    //             dto.amount
+    //         );
+
+    //         sendResponse(
+    //             res,
+    //             new ResponseOkDto<Portfolio>("Balance added", 200, portfolio)
+    //         );
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 
     static async stopStrategy(req: Request, res: Response, next: NextFunction) {
         try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
-
             const dto = plainToInstance(RunStrategyDto, req.params);
+
+            // Check if strategy belongs to the user
             const strategy = await strategyService.getUserStrategyByIdOrThrow(
-                req.session.user.user.id,
                 dto.id
             );
-            StrategyManagerService.getInstance().stopStrategy(strategy.id);
+
+            StrategySchedulerService.getInstance().stopScheduledStrategy(
+                strategy.id
+            );
+
             sendResponse(res, new ResponseOkDto("Strategy stopped", 200));
         } catch (error) {
             next(error);
@@ -288,22 +286,46 @@ export class StrategyController {
         next: NextFunction
     ) {
         try {
-            if (!req.session.user) {
-                throw new UnauthenticatedError();
-            }
-
             const dto = plainToInstance(ArchiveStrategyDto, req.params);
 
-            const strategy = await strategyService.archiveStrategy(
-                req.session.user.user.id,
+            const strategy = await strategyService.getUserStrategyByIdOrThrow(
                 dto.id
             );
+
+            const result = await strategyService.archive(strategy);
+
             sendResponse(
                 res,
-                new ResponseOkDto<Strategy>("Strategy archived", 200, strategy)
+                new ResponseOkDto<Strategy>("Strategy archived", 200, result)
             );
         } catch (error) {
             next(error);
         }
     }
+
+    // static async getExecutions(
+    //     req: Request,
+    //     res: Response,
+    //     next: NextFunction
+    // ) {
+    //     try {
+    //         if (!req.session.user) {
+    //             throw new UnauthenticatedError();
+    //         }
+
+    //         const dto = plainToInstance(GetStrategyExecutionDto, req.params);
+    //         const executions =
+    //             await strategyExecutionService.getUserStrategyExecutions(
+    //                 req.session.user.user.id,
+    //                 dto.id
+    //             );
+
+    //         sendResponse(
+    //             res,
+    //             new ResponseOkDto("Executions retrieved", 200, executions)
+    //         );
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 }
