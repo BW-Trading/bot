@@ -8,6 +8,7 @@ import {
 import { Strategy } from "./strategy.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 import { Position } from "./position.entity";
+import { DecimalTransformer } from "../utils/decimal-transformer";
 
 export enum OrderType {
     LIMIT = "limit",
@@ -50,16 +51,35 @@ export class Order {
     @Column()
     asset!: TradeableAssetEnum;
 
-    @Column("decimal", { precision: 18, scale: 8 })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        transformer: DecimalTransformer,
+    })
     quantity!: number;
 
-    @Column("decimal", { precision: 18, scale: 8, nullable: true })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        nullable: true,
+        transformer: DecimalTransformer,
+    })
     filledQuantity?: number;
 
-    @Column("decimal", { precision: 18, scale: 8, nullable: true })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        nullable: true,
+        transformer: DecimalTransformer,
+    })
     price!: number;
 
-    @Column("decimal", { precision: 18, scale: 8, nullable: true })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        nullable: true,
+        transformer: DecimalTransformer,
+    })
     fee?: number;
 
     @Column({ nullable: true })

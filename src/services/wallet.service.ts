@@ -43,6 +43,26 @@ class WalletService {
         return wallet;
     }
 
+    public async getByOrderIdOrThrow(orderId: number): Promise<Wallet> {
+        const wallet = await this.walletRepository.findOne({
+            where: {
+                marketDataAccount: {
+                    strategies: {
+                        orders: {
+                            id: orderId,
+                        },
+                    },
+                },
+            },
+        });
+        if (!wallet) {
+            throw new WalletError("Wallet not found for order", {
+                orderId,
+            });
+        }
+        return wallet;
+    }
+
     /**
      * Reserve balance from the wallet main balance
      */
@@ -59,9 +79,8 @@ class WalletService {
             });
         }
 
-        wallet.balance = DecimalTransformer.from(wallet.balance) - amount;
-        wallet.reservedBalance =
-            DecimalTransformer.from(wallet.reservedBalance) + amount;
+        wallet.balance = wallet.balance - amount;
+        wallet.reservedBalance = wallet.reservedBalance + amount;
 
         return this.walletRepository.save(wallet);
     }
@@ -100,11 +119,8 @@ class WalletService {
             });
         }
 
-        wallet.reservedBalance =
-            DecimalTransformer.from(wallet.reservedBalance) - amount;
-
-        wallet.placedBalance =
-            DecimalTransformer.from(wallet.placedBalance) + amount;
+        wallet.reservedBalance -= amount;
+        wallet.placedBalance += amount;
 
         return this.walletRepository.save(wallet);
     }
@@ -125,9 +141,8 @@ class WalletService {
             });
         }
 
-        wallet.balance = DecimalTransformer.from(wallet.balance) + amount;
-        wallet.reservedBalance =
-            DecimalTransformer.from(wallet.reservedBalance) - amount;
+        wallet.balance = wallet.balance + amount;
+        wallet.reservedBalance -= amount;
 
         return this.walletRepository.save(wallet);
     }
@@ -151,9 +166,8 @@ class WalletService {
             });
         }
 
-        wallet.balance = DecimalTransformer.from(wallet.balance) + amount;
-        wallet.placedBalance =
-            DecimalTransformer.from(wallet.placedBalance) - amount;
+        wallet.balance += amount;
+        wallet.placedBalance -= amount;
 
         return this.walletRepository.save(wallet);
     }
@@ -174,7 +188,7 @@ class WalletService {
             });
         }
 
-        wallet.balance = DecimalTransformer.from(wallet.balance) - amount;
+        wallet.balance -= amount;
 
         return this.walletRepository.save(wallet);
     }

@@ -9,20 +9,3 @@ post {
   body: json
   auth: none
 }
-
-body:json {
-  {
-    "name": "Moving average",
-    "description": "Moving average -5%/+1%",
-    "strategyEnum": "MOVING_AVERAGE",
-    "config" : {
-      "shortPeriod": 60,
-      "longPeriod": 500,
-      "thresholdBuy": 0.05,
-      "thresholdSell": 0.01,
-      "interval": "1m"
-    },
-    "interval": 30000,
-    "asset": "BTCUSDT"
-  }
-}

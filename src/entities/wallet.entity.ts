@@ -6,6 +6,7 @@ import {
     UpdateDateColumn,
 } from "typeorm";
 import { MarketDataAccount } from "./market-data-account.entity";
+import { DecimalTransformer } from "../utils/decimal-transformer";
 
 @Entity()
 export class Wallet {
@@ -18,13 +19,27 @@ export class Wallet {
     )
     marketDataAccount!: MarketDataAccount;
 
-    @Column("decimal", { precision: 18, scale: 8 })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        transformer: DecimalTransformer,
+    })
     balance!: number;
 
-    @Column("decimal", { precision: 18, scale: 8, default: 0 })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        default: 0,
+        transformer: DecimalTransformer,
+    })
     reservedBalance!: number;
 
-    @Column("decimal", { precision: 18, scale: 8, default: 0 })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        default: 0,
+        transformer: DecimalTransformer,
+    })
     placedBalance!: number;
 
     @UpdateDateColumn({ type: "timestamp" })

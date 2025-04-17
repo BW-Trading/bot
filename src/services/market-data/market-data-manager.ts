@@ -1,12 +1,12 @@
 import { Order } from "../../entities/order.entity";
 import { NotFoundError } from "../../errors/not-found-error";
 import { marketDataAccountService } from "../market-data-account.service";
-import { binanceMarketDataService } from "./binance-market-data.service";
 import { ExchangeApiEnum } from "./exchange-api.enum";
 import {
     MarketData,
     MarketDataService,
     PlaceOrderResponse,
+    TradingOrderStatus,
 } from "./market-data";
 import { testMarketDataService } from "./test-market-data.service";
 
@@ -54,6 +54,20 @@ export class MarketDataManager {
         );
 
         return await marketDataService.cancelOrder(order);
+    }
+
+    async getOrderStatus(
+        strategyId: number,
+        order: Order
+    ): Promise<TradingOrderStatus> {
+        const marketDataAccount =
+            await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
+                strategyId
+            );
+        const marketDataService = this.getMarketDataService(
+            marketDataAccount.exchangeApi
+        );
+        return await marketDataService.getOrderStatus(order);
     }
 
     getMarketDataService(exchangeApi: ExchangeApiEnum): MarketDataService {

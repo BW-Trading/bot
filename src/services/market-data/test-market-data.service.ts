@@ -14,7 +14,7 @@ class TestMarketDataService extends MarketDataService {
         MarketData.LAST_5_TICKER_PRICES,
     ];
 
-    getOrder(order: Order): Promise<TradingOrderStatus> {
+    getOrderStatus(order: Order): Promise<TradingOrderStatus> {
         throw new Error("Method not implemented.");
     }
 
@@ -39,7 +39,7 @@ class TestMarketDataService extends MarketDataService {
             code: "000000",
             data: {
                 timestamp: new Date(),
-                orderId: Math.random().toString(),
+                orderId: (Math.random() * 100000000).toFixed(8).toString(),
                 fee: 1,
             },
             errorMessage: "",

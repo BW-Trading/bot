@@ -15,16 +15,27 @@ export interface PlaceOrderResponse {
     };
     errorMessage: string;
 }
+
+export interface CancelOrderResponse {
+    status: PlaceOrderStatus;
+    code: string;
+    data: {
+        timestamp: Date;
+        orderId: string;
+    };
+    errorMessage: string;
+}
+
 export enum OrderSide {
     BUY = "BUY",
     SELL = "SELL",
 }
 
 export interface TradingOrderStatus {
-    platform: string; // Ex: "binance", "kraken", "interactive_brokers"
+    platform: string; // Ex: "binance", "kraken", ...
     orderId: string | number;
-    clientOrderId?: string; // ID côté client (optionnel)
-    symbol: string; // Ex: BTCUSDT ou AAPL
+    clientOrderId?: string; // ID clientside (optionnel)
+    symbol: string; // Ex: BTCUSDT, ETHUSDT, ...
     price: number; // Prix limite (0 si MARKET)
     quantity: number; // Quantité d'actifs
     executedQuantity: number; // Quantité exécutée
@@ -80,5 +91,5 @@ export abstract class MarketDataService {
 
     abstract placeOrder(order: Order): Promise<PlaceOrderResponse>;
     abstract cancelOrder(order: Order): Promise<any>;
-    abstract getOrder(order: Order): Promise<TradingOrderStatus>;
+    abstract getOrderStatus(order: Order): Promise<TradingOrderStatus>;
 }
