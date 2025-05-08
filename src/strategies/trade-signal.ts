@@ -1,5 +1,6 @@
 import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
-import { OrderSide, OrderType } from "../entities/order.entity";
+import { OrderType } from "../entities/order.entity";
+import { OrderSide } from "../services/market-data/market-data";
 
 export interface TradeSignal {
     action: OrderSide;

@@ -1,4 +1,4 @@
-import { Order } from "../../entities/order.entity";
+import { Order, OrderStatus } from "../../entities/order.entity";
 import {
     MarketData,
     MarketDataService,
@@ -15,7 +15,31 @@ class TestMarketDataService extends MarketDataService {
     ];
 
     getOrderStatus(order: Order): Promise<TradingOrderStatus> {
-        throw new Error("Method not implemented.");
+        // Simulate order status retrieval
+
+        const filledOrder: TradingOrderStatus = {
+            platform: "Test",
+            orderId: "",
+            clientOrderId: order.id.toString(),
+            symbol: order.asset, // Ex: BTCUSDT, ETHUSDT, ...
+            price: order.price, // Prix limite (0 si MARKET)
+            quantity: order.quantity, // Quantité d'actifs
+            executedQuantity: order.quantity, // Quantité exécutée
+            totalValue: order.quantity * order.price, // Montant total exécuté (prix * qty exécutée)
+            status: OrderStatus.FILLED,
+            orderType: order.type,
+            side: order.side,
+            createdAt: Date.now(), // Timestamp de création
+            updatedAt: Date.now(), // Timestamp de mise à jour
+            extra: undefined, // Infos supplémentaires spécifiques à la plateforme
+        };
+
+        // Simulate a delay to mimic network request
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve(filledOrder);
+            }, 1000);
+        });
     }
 
     getMarketData(marketData: MarketData): Promise<any> {

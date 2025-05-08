@@ -1,11 +1,13 @@
 import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
-import { Order, OrderSide, OrderStatus } from "../entities/order.entity";
+import { Order } from "../entities/order.entity";
 import { Position } from "../entities/position.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { InternalServerError } from "../errors/internal-server.error";
 import { NotFoundError } from "../errors/not-found-error";
 import { DecimalTransformer } from "../utils/decimal-transformer";
 import DatabaseManager from "./database-manager.service";
+import { marketDataAccountService } from "./market-data-account.service";
+import { OrderSide } from "./market-data/market-data";
 
 class PositionService {
     positionRepository =
@@ -70,6 +72,10 @@ class PositionService {
         const position = new Position();
         position.asset = asset;
         position.orders = [];
+        position.marketDataAccount =
+            await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
+                strategy.id
+            );
 
         return this.positionRepository.save(position);
     }

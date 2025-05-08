@@ -9,6 +9,7 @@ import { Strategy } from "./strategy.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 import { Position } from "./position.entity";
 import { DecimalTransformer } from "../utils/decimal-transformer";
+import { OrderSide } from "../services/market-data/market-data";
 
 export enum OrderType {
     LIMIT = "limit",
@@ -24,11 +25,6 @@ export enum OrderStatus {
     CANCELED = "canceled",
     REJECTED = "rejected",
     EXPIRED = "expired",
-}
-
-export enum OrderSide {
-    BUY = "buy",
-    SELL = "sell",
 }
 
 @Entity()

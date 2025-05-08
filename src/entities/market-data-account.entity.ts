@@ -12,6 +12,7 @@ import { User } from "./user.entity";
 import { ExchangeApiEnum } from "../services/market-data/exchange-api.enum";
 import { Strategy } from "./strategy.entity";
 import { Wallet } from "./wallet.entity";
+import { Position } from "./position.entity";
 
 @Entity()
 export class MarketDataAccount {
@@ -33,6 +34,9 @@ export class MarketDataAccount {
     @OneToOne(() => Wallet, (wallet) => wallet.marketDataAccount)
     @JoinColumn()
     wallet!: Wallet;
+
+    @OneToMany(() => Position, (position) => position.marketDataAccount)
+    positions!: Position[];
 
     @CreateDateColumn()
     createdAt!: Date;

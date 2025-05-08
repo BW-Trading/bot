@@ -141,7 +141,7 @@ class WalletService {
             });
         }
 
-        wallet.balance = wallet.balance + amount;
+        wallet.balance += amount;
         wallet.reservedBalance -= amount;
 
         return this.walletRepository.save(wallet);
@@ -203,6 +203,18 @@ class WalletService {
         wallet.balance += amount;
 
         return this.walletRepository.save(wallet);
+    }
+
+    public async hasPlacedBalanceOrThrow(wallet: Wallet, price: number) {
+        if (wallet.placedBalance <= 0 || wallet.placedBalance < price) {
+            throw new WalletError("Wallet has not enough placed balance", {
+                walletId: wallet.id,
+                balance: wallet.balance,
+                reservedBalance: wallet.reservedBalance,
+                placedBalance: wallet.placedBalance,
+                price,
+            });
+        }
     }
 }
 

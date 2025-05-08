@@ -1,4 +1,4 @@
-import { Order } from "../../entities/order.entity";
+import { Order, OrderStatus } from "../../entities/order.entity";
 import { NotFoundError } from "../../errors/not-found-error";
 import { marketDataAccountService } from "../market-data-account.service";
 import { ExchangeApiEnum } from "./exchange-api.enum";

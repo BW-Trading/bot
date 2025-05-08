@@ -1,14 +1,11 @@
 import { MarketDataController } from "../controllers/market-data.controller";
 import { TradeableAssetEnum } from "../entities/enums/tradeable-asset.enum";
-import { OrderSide, OrderType } from "../entities/order.entity";
-import { MarketData } from "../services/market-data/market-data";
+import { OrderType } from "../entities/order.entity";
+import { MarketData, OrderSide } from "../services/market-data/market-data";
 import { TradeSignal } from "./trade-signal";
 import { TradingStrategy } from "./trading-strategy";
 
 export class TestTradingStrategy extends TradingStrategy {
-
-    
-
     public getRequiredMarketData(): MarketData[] {
         return [MarketData.TICKER_PRICE, MarketData.LAST_5_TICKER_PRICES];
     }
@@ -20,11 +17,11 @@ export class TestTradingStrategy extends TradingStrategy {
     }
     public generateSignals(): TradeSignal[] {
         const signal: TradeSignal = {
-            action: OrderSide.BUY,
+            action: OrderSide.SELL,
             type: OrderType.LIMIT,
             asset: TradeableAssetEnum.BTCUSDT,
-            price: 1,
-            quantity: 1,
+            price: 2,
+            quantity: 6,
             justification: "Test signal",
             metadata: {
                 test: "test",

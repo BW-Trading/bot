@@ -1,4 +1,4 @@
-import { Order, OrderSide, OrderStatus } from "../entities/order.entity";
+import { Order, OrderStatus } from "../entities/order.entity";
 import { Strategy } from "../entities/strategy.entity";
 import { TradeSignal } from "../strategies/trade-signal";
 import DatabaseManager from "./database-manager.service";
@@ -6,6 +6,7 @@ import { marketDataManager } from "./market-data/market-data-manager";
 import { positionService } from "./position.service";
 import { strategyService } from "./strategy.service";
 import {
+    OrderSide,
     PlaceOrderResponse,
     PlaceOrderStatus,
     TradingOrderStatus,
@@ -17,10 +18,27 @@ import { walletService } from "./wallet.service";
 import { CustomError } from "../errors/custom-error";
 import { ErrorHandlerService } from "./error-handler.service";
 import NotImplementedError from "../errors/not-implemented.error";
+import { getContextUserId } from "../entities/user.entity";
 
 class OrderService {
     private orderRepository =
         DatabaseManager.getAppDataSource().getRepository(Order);
+
+    async getByIdOrThrow(id: number) {
+        const order = await this.orderRepository.findOneBy({
+            id: id,
+        });
+
+        if (!order) {
+            throw new NotFoundError(
+                "Order",
+                `Order not found with id: ${id}`,
+                "id"
+            );
+        }
+
+        return order;
+    }
 
     async createOrder(strategy: Strategy, tradeSignal: TradeSignal) {
         const order = new Order();
@@ -118,10 +136,20 @@ class OrderService {
                     strategyId
                 );
 
-                await walletService.reserveBalance(
-                    wallet,
-                    this.computeOrderTotalCost(order, result.data.fee)
-                );
+                switch (order.side) {
+                    case OrderSide.BUY:
+                        await walletService.reserveBalance(
+                            wallet,
+                            this.computeOrderTotalCost(order, result.data.fee)
+                        );
+                        break;
+                    case OrderSide.SELL:
+                        await walletService.hasPlacedBalanceOrThrow(
+                            wallet,
+                            order.quantity * order.price
+                        );
+                        break;
+                }
             } else {
                 await this.rejected(
                     order,
@@ -148,6 +176,9 @@ class OrderService {
         return await this.orderRepository.save(order);
     }
 
+    /**
+     * TODO : Throw on error, check error handling on method calls
+     */
     async updateOrder(order: Order, orderStatusUpdate: TradingOrderStatus) {
         if (orderStatusUpdate.status === OrderStatus.REJECTED) {
             await this.rejected(
@@ -166,24 +197,27 @@ class OrderService {
 
         switch (orderStatusUpdate.status) {
             case OrderStatus.PARTIALLY_FILLED:
-                this.filledPartial(order, orderStatusUpdate.quantity);
+                return await this.filledPartial(
+                    order,
+                    orderStatusUpdate.quantity
+                );
                 break;
 
             case OrderStatus.FILLED:
-                this.filled(order);
+                return await this.filled(order);
                 break;
 
             case OrderStatus.CANCELED:
-                await this.canceled(order);
+                return await this.canceled(order);
                 break;
 
             case OrderStatus.EXPIRED:
-                await this.expired(order);
+                return await this.expired(order);
                 break;
 
             default:
                 logger.warn(
-                    `Unknown order status update for order ${order.id}: ${orderStatusUpdate.status}`
+                    `Unknown order status update for order ${order.id}: Current[${order.status}] - New[${orderStatusUpdate.status}]`
                 );
         }
     }
@@ -195,6 +229,13 @@ class OrderService {
         ]);
 
         for (const order of orders) {
+            if (
+                ![OrderStatus.PENDING, OrderStatus.PARTIALLY_FILLED].includes(
+                    order.status
+                )
+            )
+                continue;
+
             try {
                 const orderStatusUpdate: TradingOrderStatus =
                     await marketDataManager.getOrderStatus(strategy.id, order);
@@ -209,16 +250,64 @@ class OrderService {
         }
     }
 
+    async getUpdatedUserOrderStatus(orderId: number) {
+        const order = await this.orderRepository.findOne({
+            where: {
+                id: orderId,
+                strategy: {
+                    user: { id: getContextUserId() },
+                },
+            },
+            relations: {
+                strategy: {
+                    user: true,
+                },
+            },
+        });
+
+        if (!order) {
+            throw new NotFoundError(
+                "Order",
+                `Order not found with id ${orderId}`,
+                "id"
+            );
+        }
+
+        try {
+            const orderStatusUpdate: TradingOrderStatus =
+                await marketDataManager.getOrderStatus(
+                    order.strategy.id,
+                    order
+                );
+
+            await this.updateOrder(order, orderStatusUpdate);
+
+            return await this.getByIdOrThrow(order.id);
+        } catch (error) {
+            logger.error(`Failed to update order ${order.id}`, error);
+        }
+    }
+
     async filledPartial(order: Order, filledQuantity: number) {
         if (order.status === OrderStatus.PARTIALLY_FILLED) {
             const newlyFilledQuantity = order.filledQuantity! - filledQuantity;
             order.filledQuantity = filledQuantity;
 
             const wallet = await walletService.getByOrderIdOrThrow(order.id);
-            await walletService.placeBalance(
-                wallet,
-                order.price * newlyFilledQuantity
-            );
+            switch (order.side) {
+                case OrderSide.BUY:
+                    await walletService.placeBalance(
+                        wallet,
+                        order.price * newlyFilledQuantity
+                    );
+                    break;
+                case OrderSide.SELL:
+                    await walletService.releasePlacedBalance(
+                        wallet,
+                        order.price * newlyFilledQuantity
+                    );
+                    break;
+            }
 
             // Update position TBD
 
@@ -231,7 +320,20 @@ class OrderService {
 
         // Update wallet
         const wallet = await walletService.getByOrderIdOrThrow(order.id);
-        await walletService.placeBalance(wallet, order.price * filledQuantity);
+        switch (order.side) {
+            case OrderSide.BUY:
+                await walletService.placeBalance(
+                    wallet,
+                    order.price * filledQuantity
+                );
+                break;
+            case OrderSide.SELL:
+                await walletService.releasePlacedBalance(
+                    wallet,
+                    order.price * filledQuantity
+                );
+                break;
+        }
 
         // Update position TBD
 
@@ -242,11 +344,21 @@ class OrderService {
         if (order.status === OrderStatus.PARTIALLY_FILLED) {
             const notFilledQuantity = order.quantity - order.filledQuantity!;
             const wallet = await walletService.getByOrderIdOrThrow(order.id);
-            await walletService.placeBalance(
-                wallet,
-                order.price * notFilledQuantity
-            );
 
+            switch (order.side) {
+                case OrderSide.BUY:
+                    await walletService.placeBalance(
+                        wallet,
+                        order.price * notFilledQuantity
+                    );
+                    break;
+                case OrderSide.SELL:
+                    await walletService.releasePlacedBalance(
+                        wallet,
+                        order.price * notFilledQuantity
+                    );
+                    break;
+            }
             order.status = OrderStatus.FILLED;
             order.filledQuantity = order.quantity;
             order.executedAt = new Date();
@@ -262,7 +374,20 @@ class OrderService {
 
         // Update wallet
         const wallet = await walletService.getByOrderIdOrThrow(order.id);
-        await walletService.placeBalance(wallet, order.price * order.quantity);
+        switch (order.side) {
+            case OrderSide.BUY:
+                await walletService.placeBalance(
+                    wallet,
+                    order.price * order.quantity
+                );
+                break;
+            case OrderSide.SELL:
+                await walletService.releasePlacedBalance(
+                    wallet,
+                    order.price * order.quantity
+                );
+                break;
+        }
 
         // Update position TBD
 
@@ -287,7 +412,7 @@ class OrderService {
                 order.price * notFilledQuantity
             );
 
-            order.status = OrderStatus.FILLED;
+            order.status = OrderStatus.EXPIRED;
 
             // Update position TBD
 
@@ -300,7 +425,7 @@ class OrderService {
 
         // Update wallet
         const wallet = await walletService.getByOrderIdOrThrow(order.id);
-        await walletService.releaseReservedBalance(
+        await walletService.releasePlacedBalance(
             wallet,
             this.computeOrderTotalCost(order, order.fee)
         );
@@ -311,10 +436,24 @@ class OrderService {
     }
 
     async canceled(order: Order) {
-        throw new NotImplementedError();
+        if (order.status === OrderStatus.PARTIALLY_FILLED) {
+            // Release the reserved balance for the amount that was not filled
+            const notFilledQuantity = order.quantity - order.filledQuantity!;
+            const wallet = await walletService.getByOrderIdOrThrow(order.id);
+            await walletService.releaseReservedBalance(
+                wallet,
+                order.price * notFilledQuantity
+            );
+
+            order.status = OrderStatus.CANCELED;
+
+            // Update position TBD
+
+            return await this.orderRepository.save(order);
+        }
+
         order.status = OrderStatus.CANCELED;
         order.canceledAt = new Date();
-
         return await this.orderRepository.save(order);
     }
 
