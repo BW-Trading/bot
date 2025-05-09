@@ -8,16 +8,12 @@ import {
 } from "typeorm";
 import { Order } from "./order.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
-import { User } from "./user.entity";
 import { MarketDataAccount } from "./market-data-account.entity";
 
 @Entity()
 export class Position {
     @PrimaryGeneratedColumn()
     id!: number;
-
-    @ManyToOne(() => User, (user) => user.positions)
-    user!: User;
 
     // Position associated to a specific market data account
     @ManyToOne(

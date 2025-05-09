@@ -80,9 +80,56 @@ class PositionService {
         return this.positionRepository.save(position);
     }
 
-    async updatePosition(positionId: number, quantity: number, price: number) {
-        const position = await positionService.getByIdOrThrow(positionId);
+    async updatePosition(
+        position: Position,
+        quantity: number,
+        price: number,
+        side: OrderSide
+    ) {
+        switch (side) {
+            case OrderSide.BUY:
+                // Update average entry price
+                position.averageEntryPrice = position.averageEntryPrice
+                    ? (position.averageEntryPrice * position.totalQuantity +
+                          price * quantity) /
+                      (position.totalQuantity + quantity)
+                    : price;
 
+                // Update quantity
+                position.totalQuantity += quantity;
+                break;
+            case OrderSide.SELL:
+                // Update realized PnL
+                if (position.averageEntryPrice === undefined) {
+                    throw new InternalServerError(
+                        "Position averageEntryPrice is undefined, cannot compute RealizedPnL",
+                        {
+                            positionId: position.id,
+                            sellPrice: price,
+                            sellQuantity: quantity,
+                        }
+                    );
+                }
+
+                const buyValue =
+                    position.averageEntryPrice * position.totalQuantity;
+
+                const sellValue = price * quantity;
+                const realizedPnL =
+                    position.realizedPnL + (sellValue - buyValue);
+                position.realizedPnL = realizedPnL;
+
+                // Update average entry price
+                position.averageEntryPrice =
+                    (position.averageEntryPrice * position.totalQuantity -
+                        price * quantity) /
+                    (position.totalQuantity - quantity);
+
+                // Update quantity
+                position.totalQuantity -= quantity;
+
+                break;
+        }
         return this.positionRepository.save(position);
     }
 
