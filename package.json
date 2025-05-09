@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npx tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "migration-generate": "npx typeorm-ts-node-commonjs migration:generate -d ./src/data-source.ts src/migrations/$file"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +28,7 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "node-cron": "^3.0.3",
     "pg": "^8.13.3",
     "ts-node-dev": "^2.0.0",
     "typeorm": "^0.3.20",
@@ -42,6 +44,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.7.4",
+    "@types/node-cron": "^3.0.11",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"

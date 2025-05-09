@@ -1,4 +1,4 @@
 export enum TradeableAssetEnum {
-    BTC = "BTCUSDT",
-    ETH = "ETHUSDT",
+    BTCUSDT = "BTCUSDT",
+    ETHUSDT = "ETHUSDT",
 }

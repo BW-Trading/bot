@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{host}}/portfolio/1
+  url: {{host}}/strategy/:id/portfolio
   body: none
   auth: none
+}
+
+params:path {
+  id: 1
 }

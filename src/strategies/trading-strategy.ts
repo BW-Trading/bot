@@ -1,45 +1,82 @@
-import { ValidationError } from "class-validator";
-import { MarketAction } from "../entities/market-action.entity";
 import { Strategy } from "../entities/strategy.entity";
-import { ITradingStrategy } from "./trading-strategy.interface";
-import { strategyService } from "../services/strategy.service";
+import { MarketData } from "../services/market-data/market-data";
+import { TradeSignal } from "./trade-signal";
 
-export abstract class TradingStrategy implements ITradingStrategy {
-    strategy: Strategy;
-    isRunning: boolean;
+export enum SignalAction {
+    BUY = "BUY",
+    SELL = "SELL",
+}
+
+export abstract class TradingStrategy {
+    protected strategyId: number;
+    protected config: any;
+    protected state: any;
+    protected activeOrders: Array<{
+        id: number;
+        action: SignalAction;
+        symbol: string;
+        timestamp: number;
+    }> = [];
 
     constructor(strategy: Strategy) {
-        this.strategy = strategy;
-        this.isRunning = false;
+        this.strategyId = strategy.id;
+        this.validateConfig(strategy.config);
+        this.config = strategy.config;
+        this.state = strategy.state || {};
     }
 
-    /**
-     * Fonction abstraite à implémenter par les classes filles
-     * Décrit les actions à effectuer lors de l'exécution de la stratégie
-     */
-    abstract run(): Promise<MarketAction[]>;
+    // Fonction de validation de la configuration
+    public abstract validateConfig(config: any): any;
 
-    /**
-     * Fonction de validation de la configuration appelée par le service de stratégie à la création d'une instance
-     */
-    abstract validateConfig(config: any): ValidationError[];
+    // Fonction qui retourne les types de données nécessaires pour cette stratégie ex: ["orderBook", "tickerPrice"]
+    public abstract getRequiredMarketData(): MarketData[];
 
-    start() {
-        this.isRunning = true;
+    // Analyse les données de marché et met à jour l'état
+    public abstract analyze(marketData: any): void;
+
+    // Génère un signal ou un ensemble de signaux
+    public abstract generateSignals(): TradeSignal[];
+
+    public getState(): any {
+        return this.state;
     }
 
-    stop() {
-        this.isRunning = false;
+    public setState(state: any): void {
+        this.state = state;
     }
 
-    getRunning(): boolean {
-        return this.isRunning;
+    public getConfig(): any {
+        return this.config;
     }
 
-    getPortfolio() {
-        return strategyService.getPortfolioForUserStrategy(
-            this.strategy.user.id,
-            this.strategy.id
+    public setConfig(config: any): void {
+        this.config = config;
+    }
+
+    public setActiveOrders(orders: any[]): void {
+        this.activeOrders = orders;
+    }
+
+    public getActiveOrders(): any[] {
+        return this.activeOrders;
+    }
+
+    public getStrategyId(): number {
+        return this.strategyId;
+    }
+
+    public addActiveOrder(orderId: number, signal: any): void {
+        this.activeOrders.push({
+            id: orderId,
+            action: signal.action,
+            symbol: signal.symbol,
+            timestamp: Date.now(),
+        });
+    }
+
+    public removeActiveOrder(orderId: number): void {
+        this.activeOrders = this.activeOrders.filter(
+            (order) => order.id !== orderId
         );
     }
 }
