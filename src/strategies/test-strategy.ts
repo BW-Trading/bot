@@ -16,12 +16,12 @@ export class TestTradingStrategy extends TradingStrategy {
         return;
     }
     public generateSignals(): TradeSignal[] {
-        const signal: TradeSignal = {
-            action: OrderSide.SELL,
+        const signalBuy: TradeSignal = {
+            action: OrderSide.BUY,
             type: OrderType.LIMIT,
             asset: TradeableAssetEnum.BTCUSDT,
             price: 2,
-            quantity: 6,
+            quantity: 5,
             justification: "Test signal",
             metadata: {
                 test: "test",
@@ -29,6 +29,19 @@ export class TestTradingStrategy extends TradingStrategy {
             },
         };
 
-        return [signal];
+        const signalSell: TradeSignal = {
+            action: OrderSide.SELL,
+            type: OrderType.LIMIT,
+            asset: TradeableAssetEnum.BTCUSDT,
+            price: 3,
+            quantity: 5,
+            justification: "Test signal",
+            metadata: {
+                test: "test",
+                test2: "test2",
+            },
+        }
+
+        return [signalBuy, signalSell];
     }
 }

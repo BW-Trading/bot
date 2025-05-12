@@ -57,7 +57,6 @@ class UserService {
         user.password = password;
         user.salt = salt;
         user.strategies = [];
-        user.positions = [];
         return UserService.getRepository().save(user);
     }
 }

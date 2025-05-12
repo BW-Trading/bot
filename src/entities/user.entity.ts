@@ -49,9 +49,6 @@ export class User {
     @Column({ default: false })
     archived!: boolean;
 
-    @OneToMany(() => Position, (position) => position.user)
-    positions!: Position[];
-
     @OneToMany(
         () => MarketDataAccount,
         (marketDataAccount) => marketDataAccount.user,

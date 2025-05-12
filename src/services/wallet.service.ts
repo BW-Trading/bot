@@ -63,6 +63,12 @@ class WalletService {
         return wallet;
     }
 
+    public async addBalance(wallet: Wallet, amount: number) {
+        wallet.balance += amount;
+
+        return this.walletRepository.save(wallet);
+    }
+
     /**
      * Reserve balance from the wallet main balance
      */
@@ -147,6 +153,14 @@ class WalletService {
         return this.walletRepository.save(wallet);
     }
 
+    public async addReservedBalance(
+        wallet: Wallet,
+        amount: number
+    ): Promise<Wallet> {
+        wallet.reservedBalance += amount;
+        return this.walletRepository.save(wallet);
+    }
+
     /**
      *
      * Release placed balance back to the wallet balance
@@ -172,6 +186,13 @@ class WalletService {
         return this.walletRepository.save(wallet);
     }
 
+    public async addPlacedBalance(
+        wallet: Wallet,
+        amount: number
+    ): Promise<Wallet> {
+        wallet.placedBalance += amount;
+        return this.walletRepository.save(wallet);
+    }
     /**
      * Withdraw balance from the wallet balance
      */

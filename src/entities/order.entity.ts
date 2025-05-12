@@ -60,7 +60,7 @@ export class Order {
         nullable: true,
         transformer: DecimalTransformer,
     })
-    filledQuantity?: number;
+    filledQuantity!: number;
 
     @Column("decimal", {
         precision: 18,

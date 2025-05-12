@@ -40,6 +40,27 @@ class PositionService {
         return position;
     }
 
+    async hasEnoughQuantity(
+        position: Position,
+        quantity: number,
+        side: OrderSide
+    ) {
+        if (side === OrderSide.SELL) {
+            return position.totalQuantity >= quantity;
+        } else if (side === OrderSide.BUY) {
+            return true;
+        }
+        throw new InternalServerError(
+            "Not enough quantity in position to SELL",
+            {
+                positionId: position.id,
+                ownedQuantity: position.totalQuantity,
+                quantity: quantity,
+                side: side,
+            }
+        );
+    }
+
     async getStrategyPositionOrThrow(strategy: Strategy) {
         const position = await this.positionRepository.findOneBy({});
 
@@ -82,7 +103,7 @@ class PositionService {
 
     async updatePosition(
         position: Position,
-        quantity: number,
+        newQuantity: number,
         price: number,
         side: OrderSide
     ) {
@@ -91,12 +112,12 @@ class PositionService {
                 // Update average entry price
                 position.averageEntryPrice = position.averageEntryPrice
                     ? (position.averageEntryPrice * position.totalQuantity +
-                          price * quantity) /
-                      (position.totalQuantity + quantity)
+                          price * newQuantity) /
+                      (position.totalQuantity + newQuantity)
                     : price;
 
                 // Update quantity
-                position.totalQuantity += quantity;
+                position.totalQuantity += newQuantity;
                 break;
             case OrderSide.SELL:
                 // Update realized PnL
@@ -106,28 +127,27 @@ class PositionService {
                         {
                             positionId: position.id,
                             sellPrice: price,
-                            sellQuantity: quantity,
+                            sellQuantity: newQuantity,
                         }
                     );
                 }
 
-                const buyValue =
-                    position.averageEntryPrice * position.totalQuantity;
+                const buyValue = position.averageEntryPrice * newQuantity;
 
-                const sellValue = price * quantity;
-                const realizedPnL =
-                    position.realizedPnL + (sellValue - buyValue);
-                position.realizedPnL = realizedPnL;
+                const sellValue = price * newQuantity;
+                position.realizedPnL += sellValue - buyValue;
 
-                // Update average entry price
-                position.averageEntryPrice =
-                    (position.averageEntryPrice * position.totalQuantity -
-                        price * quantity) /
-                    (position.totalQuantity - quantity);
-
+                if (position.totalQuantity - newQuantity == 0) {
+                    position.averageEntryPrice = 0;
+                } else {
+                    // Update average entry price
+                    position.averageEntryPrice =
+                        (position.averageEntryPrice * position.totalQuantity -
+                            price * newQuantity) /
+                        (position.totalQuantity - newQuantity);
+                }
                 // Update quantity
-                position.totalQuantity -= quantity;
-
+                position.totalQuantity -= newQuantity;
                 break;
         }
         return this.positionRepository.save(position);

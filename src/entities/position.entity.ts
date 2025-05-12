@@ -9,6 +9,7 @@ import {
 import { Order } from "./order.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
 import { MarketDataAccount } from "./market-data-account.entity";
+import { DecimalTransformer } from "../utils/decimal-transformer";
 
 @Entity()
 export class Position {
@@ -28,19 +29,34 @@ export class Position {
     /**
      * The total quantity of the asset held in this position.
      */
-    @Column("decimal", { precision: 18, scale: 8, default: 0 })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        default: 0,
+        transformer: DecimalTransformer,
+    })
     totalQuantity!: number;
 
     /**
      * The average price at which the asset was bought or sold.
      */
-    @Column("decimal", { precision: 18, scale: 8, nullable: true })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        nullable: true,
+        transformer: DecimalTransformer,
+    })
     averageEntryPrice?: number;
 
     /**
      * The total realized profit or loss from this position.
      */
-    @Column("decimal", { precision: 18, scale: 8, default: 0 })
+    @Column("decimal", {
+        precision: 18,
+        scale: 8,
+        default: 0,
+        transformer: DecimalTransformer,
+    })
     realizedPnL!: number;
 
     @OneToMany(() => Order, (order) => order.position)
