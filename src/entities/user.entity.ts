@@ -6,7 +6,25 @@ import {
     UpdateDateColumn,
     OneToMany,
 } from "typeorm";
+import { MarketDataAccount } from "./market-data-account.entity";
 import { Strategy } from "./strategy.entity";
+import { AsyncLocalStorage } from "async_hooks";
+import { UnauthenticatedError } from "../errors/unauthenticated.error";
+import { Position } from "./position.entity";
+
+const userContext = new AsyncLocalStorage<{ userId: string }>();
+
+export const setUserContext = (userId: string, callback: () => void) => {
+    userContext.run({ userId }, callback);
+};
+
+export const getContextUserId = (): string => {
+    const userId = userContext.getStore()?.userId;
+    if (!userId) {
+        throw new UnauthenticatedError();
+    }
+    return userId;
+};
 
 @Entity()
 export class User {
@@ -31,6 +49,13 @@ export class User {
     @Column({ default: false })
     archived!: boolean;
 
-    @OneToMany(() => Strategy, (strategy) => strategy.user)
+    @OneToMany(
+        () => MarketDataAccount,
+        (marketDataAccount) => marketDataAccount.user,
+        { cascade: true }
+    )
+    marketDataAccounts!: MarketDataAccount[];
+
+    @OneToMany(() => Strategy, (strategy) => strategy.user, { cascade: true })
     strategies!: Strategy[];
 }

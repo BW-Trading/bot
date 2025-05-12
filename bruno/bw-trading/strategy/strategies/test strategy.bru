@@ -1,0 +1,24 @@
+meta {
+  name: test strategy
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/strategy
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Strategy de test",
+    "description": "Du test hein",
+    "asset": "BTCUSDT",
+    "strategyType": "TEST",
+    "config" : {
+    },
+    "interval": "*/1 * * * *",
+    "marketDataAccountId": 1
+  }
+}

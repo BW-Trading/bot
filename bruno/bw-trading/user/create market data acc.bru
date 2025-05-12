@@ -1,0 +1,18 @@
+meta {
+  name: create market data acc
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host}}/user/market-data-account
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "apiKey": "12324124125zae",
+    "exchange":"TEST"
+  }
+}

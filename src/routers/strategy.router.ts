@@ -12,6 +12,7 @@ import { StopStrategyDto } from "../dto/requests/strategy/stop.dto";
 import { GetStrategyByIdPortfolioDto } from "../dto/requests/strategy/get-by-id-portfolio.dto";
 import { isAuthenticated } from "../middlewares/is-authenticated";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
+import { GetStrategyExecutionDto } from "../dto/requests/strategy/get-executions.dto";
 
 const strategyRouter = Router();
 
@@ -32,24 +33,30 @@ strategyRouter.post(
 );
 
 strategyRouter.post(
-    "/run/:id",
+    "/:id/run",
     validateDto(RunStrategyDto, ValidationType.PARAMS),
     StrategyController.runStrategy
 );
 
 strategyRouter.post(
-    "/run-once/:id",
+    "/:id/run-once",
     validateDto(RunStrategyOnceDto, ValidationType.PARAMS),
     StrategyController.runOnce
 );
 
 strategyRouter.get("/running", StrategyController.getRunningStrategies);
 
-strategyRouter.get(
-    "/orders/:id",
-    validateDto(GetStrategyOrdersDto, ValidationType.PARAMS),
-    StrategyController.getOrders
-);
+// strategyRouter.get(
+//     "/:id/orders",
+//     validateDto(GetStrategyOrdersDto, ValidationType.PARAMS),
+//     StrategyController.getOrders
+// );
+
+// strategyRouter.get(
+//     "/:id/executions",
+//     validateDto(GetStrategyExecutionDto, ValidationType.PARAMS),
+//     StrategyController.getExecutions
+// );
 
 strategyRouter.get(
     "/:id",
@@ -57,26 +64,28 @@ strategyRouter.get(
     StrategyController.getStrategy
 );
 
-strategyRouter.post(
-    "/add-balance",
-    validateDto(RunStrategyDto, ValidationType.BODY),
-    StrategyController.addBalance
-);
+// strategyRouter.post(
+//     "/add-balance",
+//     validateDto(RunStrategyDto, ValidationType.BODY),
+//     StrategyController.addBalance
+// );
 
 strategyRouter.put(
-    "/archive/:id",
+    "/:id/archive",
     validateDto(ArchiveStrategyDto, ValidationType.PARAMS),
     StrategyController.archiveStrategy
 );
 
 strategyRouter.post(
-    "/stop/:id",
+    "/:id/stop",
     validateDto(StopStrategyDto, ValidationType.PARAMS),
     StrategyController.stopStrategy
 );
-strategyRouter.get(
-    "/portfolio/:id",
-    validateDto(GetStrategyByIdPortfolioDto, ValidationType.PARAMS),
-    StrategyController.getPortfolio
-);
+
+// strategyRouter.get(
+//     "/:id/portfolio",
+//     validateDto(GetStrategyByIdPortfolioDto, ValidationType.PARAMS),
+//     StrategyController.getPortfolio
+// );
+
 export default strategyRouter;
