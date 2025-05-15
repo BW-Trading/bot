@@ -13,7 +13,10 @@ import { testMarketDataService } from "./test-market-data.service";
 export class MarketDataManager {
     async retrieveMarketData(
         strategyId: number,
-        requiredMarketData: MarketData[]
+        requiredMarketData: MarketData[],
+        symbol: string,
+        startDate?: Date,
+        endDate?: Date
     ): Promise<any> {
         const marketDataAccount =
             await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
@@ -24,7 +27,12 @@ export class MarketDataManager {
             marketDataAccount.exchangeApi
         );
 
-        return marketDataService.retrieveMarketData(requiredMarketData);
+        return marketDataService.retrieveMarketData(
+            requiredMarketData,
+            symbol,
+            startDate,
+            endDate
+        );
     }
 
     async placeOrder(

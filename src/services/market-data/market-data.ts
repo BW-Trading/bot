@@ -70,7 +70,12 @@ export abstract class MarketDataService {
     /**
      * Returns an object with the market data associated to the given list of marketData string labels
      */
-    retrieveMarketData(requiredMarketData: MarketData[]): Promise<any> {
+    retrieveMarketData(
+        requiredMarketData: MarketData[],
+        symbol: string,
+        startDate?: Date,
+        endDate?: Date
+    ): Promise<any> {
         const marketData: { [key: string]: any } = {};
 
         for (const data of requiredMarketData) {
@@ -78,7 +83,12 @@ export abstract class MarketDataService {
                 throw new Error(`Market data ${data} is not available `);
             }
 
-            marketData[data] = this.getMarketData(data);
+            marketData[data] = this.getMarketData(
+                data,
+                symbol,
+                startDate,
+                endDate
+            );
         }
 
         return Promise.resolve(marketData);
@@ -87,7 +97,12 @@ export abstract class MarketDataService {
     /**
      * Returns the market data associated to the given marketData string label
      */
-    abstract getMarketData(marketData: string): Promise<any>;
+    abstract getMarketData(
+        marketData: string,
+        symbol: string,
+        startDate?: Date,
+        endDate?: Date
+    ): Promise<any>;
 
     abstract placeOrder(order: Order): Promise<PlaceOrderResponse>;
     abstract cancelOrder(order: Order): Promise<any>;

@@ -1,4 +1,5 @@
 import { Strategy } from "../entities/strategy.entity";
+import { Wallet } from "../entities/wallet.entity";
 import { MarketData } from "../services/market-data/market-data";
 import { TradeSignal } from "./trade-signal";
 
@@ -36,6 +37,14 @@ export abstract class TradingStrategy {
 
     // Génère un signal ou un ensemble de signaux
     public abstract generateSignals(): TradeSignal[];
+
+    // Simule une stratégie sur des données historiques
+    // et retourne le solde final
+    public abstract simulateStrategy(
+        historicalData: any[],
+        balance: number,
+        config: any
+    ): { finalBalance: number; remainingPosition: number };
 
     public getState(): any {
         return this.state;

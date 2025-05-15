@@ -16,6 +16,7 @@ import { GetStrategyByIdDto } from "../dto/requests/strategy/get-by-id.dto";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
 import { StrategySchedulerService } from "../services/strategy-scheduler.service";
+import { SimulationRequestDto } from "../dto/requests/strategy/simulation-request.dto";
 
 export class StrategyController {
     static async getRunnableStrategies(
@@ -328,4 +329,32 @@ export class StrategyController {
     //         next(error);
     //     }
     // }
+
+    static async startSimulation(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const dto: SimulationRequestDto = plainToInstance(
+                SimulationRequestDto,
+                req.body
+            );
+
+            const result = await strategyService.runSimulation(
+                dto.startDate,
+                dto.endDate,
+                dto.balance,
+                dto.strategyId,
+                dto.symbol
+            );
+
+            sendResponse(
+                res,
+                new ResponseOkDto("Simulation started", 200, result)
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
 }

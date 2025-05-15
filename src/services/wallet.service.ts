@@ -23,6 +23,18 @@ class WalletService {
         return wallet;
     }
 
+    public createWalletWithBalances(
+        balance: number,
+        reservedBalance: number,
+        placedBalance: number
+    ): Wallet {
+        const wallet = new Wallet();
+        wallet.balance = balance;
+        wallet.reservedBalance = reservedBalance;
+        wallet.placedBalance = placedBalance;
+        return wallet;
+    }
+
     public async getByStrategyIdOrThrow(strategyId: number): Promise<Wallet> {
         const wallet = await this.walletRepository.findOne({
             where: {
