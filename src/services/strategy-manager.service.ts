@@ -19,7 +19,11 @@ export class StrategyManagerService {
         return StrategyManagerService.instance;
     }
 
-    async executeStrategy(strategyId: number, saveInstance = true) {
+    async executeStrategy(
+        strategyId: number,
+        saveInstance = true,
+        symbol: string
+    ) {
         const strategy = await strategyService.getByIdOrThrow(strategyId);
 
         // Get the active strategy instance if it exists or create a new one
@@ -61,7 +65,7 @@ export class StrategyManagerService {
             const marketData = await marketDataManager.retrieveMarketData(
                 strategy.id,
                 activeStrategy.getRequiredMarketData(),
-                strategy.symbol
+                symbol
             );
             // Analyze the market data and generate signals for processing
             activeStrategy.analyze(marketData);

@@ -131,7 +131,8 @@ export class StrategyController {
 
             StrategySchedulerService.getInstance().scheduleStrategy(
                 strategy.id,
-                strategy.executionInterval
+                strategy.executionInterval,
+                dto.symbol
             );
 
             sendResponse(res, new ResponseOkDto("Strategy started", 200));
@@ -152,7 +153,8 @@ export class StrategyController {
 
             StrategyManagerService.getInstance().executeStrategy(
                 strategy.id,
-                false
+                false,
+                dto.symbol
             );
             sendResponse(res, new ResponseOkDto("Strategy executed", 200));
         } catch (error) {
@@ -342,11 +344,11 @@ export class StrategyController {
             );
 
             const result = await strategyService.runSimulation(
-                dto.startDate,
-                dto.endDate,
                 dto.balance,
                 dto.strategyId,
-                dto.symbol
+                dto.symbol,
+                dto.startDate,
+                dto.endDate
             );
 
             sendResponse(

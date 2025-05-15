@@ -5,6 +5,7 @@ import { TradeSignal } from "./trade-signal";
 import { TradingStrategy } from "./trading-strategy";
 
 export class TestTradingStrategy extends TradingStrategy {
+    // Perhaps can use analyze method
     public simulateStrategy(
         historicalData: any[],
         balance: number,
@@ -13,22 +14,27 @@ export class TestTradingStrategy extends TradingStrategy {
         let position = 0;
         const { buyThreshold, sellThreshold } = config;
 
-        for (const dataPoint of historicalData) {
-            const price = dataPoint.tickerPrice;
+        const tickerPrice = historicalData[0];
+        const last5TickerPrices = historicalData[1];
 
-            if (price < buyThreshold && balance > 0) {
-                const quantityToBuy = balance / price;
-                position += quantityToBuy;
-                balance -= quantityToBuy * price;
-            } else if (price > sellThreshold && position > 0) {
-                balance += position * price;
-                position = 0;
-            }
+        const averagePrice =
+            (last5TickerPrices[0] +
+                last5TickerPrices[1] +
+                last5TickerPrices[2] +
+                last5TickerPrices[3] +
+                last5TickerPrices[4]) /
+            5;
+
+        if (averagePrice < buyThreshold && balance > 0) {
+            const quantityToBuy = balance / tickerPrice;
+            position += quantityToBuy;
+            balance -= quantityToBuy * tickerPrice;
+        } else if (tickerPrice > sellThreshold && position > 0) {
+            balance += position * tickerPrice;
+            position = 0;
         }
 
-        const remainingPositionValue =
-            position *
-            (historicalData[historicalData.length - 1]?.tickerPrice || 0);
+        const remainingPositionValue = position * tickerPrice;
 
         return {
             finalBalance: balance + remainingPositionValue,
