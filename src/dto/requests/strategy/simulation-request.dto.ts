@@ -12,7 +12,4 @@ export class SimulationRequestDto {
 
     @IsNumberString()
     strategyId!: number;
-
-    @IsNumberString()
-    symbol!: string;
 }

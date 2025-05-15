@@ -23,21 +23,13 @@ export class StrategySchedulerService {
         return StrategySchedulerService.instance;
     }
 
-    scheduleStrategy(
-        strategyId: number,
-        executionInterval: string,
-        symbol: string
-    ) {
+    scheduleStrategy(strategyId: number, executionInterval: string) {
         if (this.isScheduled(strategyId)) {
             throw new AlreadyExistsError("Strategy is already scheduled");
         }
 
         const cronJob = cron.schedule(executionInterval, () => {
-            this.strategyManagerService.executeStrategy(
-                strategyId,
-                true,
-                symbol
-            );
+            this.strategyManagerService.executeStrategy(strategyId, true);
         });
 
         this.scheduledStrategies.set(strategyId, {

@@ -235,7 +235,6 @@ class StrategyService {
     public async runSimulation(
         balance: number,
         strategyId: number,
-        symbol: string,
         startDate?: Date,
         endDate?: Date
     ): Promise<any> {
@@ -288,7 +287,7 @@ class StrategyService {
         const marketData = await marketDataManager.retrieveMarketData(
             strategyId,
             tradingStrategy.getRequiredMarketData(),
-            symbol,
+            strategyEntity.asset,
             startDate,
             endDate
         );
