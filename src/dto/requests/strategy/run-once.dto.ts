@@ -1,4 +1,4 @@
-import { IsNumberString } from "class-validator";
+import { IsNumberString, IsString } from "class-validator";
 
 export class RunStrategyOnceDto {
     @IsNumberString()

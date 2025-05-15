@@ -18,6 +18,9 @@ import { marketDataAccountService } from "./market-data-account.service";
 import cron from "node-cron";
 import { InvalidInputError } from "../errors/invalid-input.error";
 import { BadRequestError } from "../errors/bad-request.error";
+import { MarketData, MarketDataService } from "./market-data/market-data";
+import { InternalServerError } from "../errors/internal-server.error";
+import { marketDataManager } from "./market-data/market-data-manager";
 
 class StrategyService {
     private strategyRepository =
@@ -227,6 +230,94 @@ class StrategyService {
                 status: status,
             },
         });
+    }
+
+    public async runSimulation(
+        balance: number,
+        strategyId: number,
+        startDate?: Date,
+        endDate?: Date
+    ): Promise<any> {
+        // Fetch the strategy by ID
+        const strategyEntity = await this.getByIdOrThrow(strategyId);
+        if (!strategyEntity) {
+            throw new NotFoundError(
+                "Strategy",
+                `Strategy not found with id ${strategyId}`,
+                "id"
+            );
+        }
+
+        // Check if the strategy is active
+        if (!strategyEntity.active) {
+            throw new BadRequestError("Strategy is not active", {
+                strategyId,
+            });
+        }
+
+        // Check if startDate and endDate are provided
+        if (startDate && endDate) {
+            // Check if the start date is before the end date
+            if (startDate >= endDate) {
+                throw new InternalServerError(
+                    "Start date must be before end date",
+                    {
+                        startDate,
+                        endDate,
+                    }
+                );
+            }
+
+            // Check if the start date is in the past
+            const currentDate = new Date();
+            if (startDate > currentDate) {
+                throw new InternalServerError(
+                    "Start date must be in the past",
+                    {
+                        startDate,
+                        currentDate,
+                    }
+                );
+            }
+        }
+
+        // Instantiate the trading strategy
+        const tradingStrategy = await this.instantiateStrategy(strategyEntity);
+
+        const marketData = await marketDataManager.retrieveMarketData(
+            strategyId,
+            tradingStrategy.getRequiredMarketData(),
+            strategyEntity.asset,
+            startDate,
+            endDate
+        );
+
+        // Call simulateStrategy on the instantiated strategy
+        const { finalBalance, remainingPosition } =
+            tradingStrategy.simulateStrategy(
+                marketData,
+                balance,
+                tradingStrategy.getConfig()
+            );
+
+        // Calculate the performance of the strategy
+        const performance = this.calculatePerformance(balance, finalBalance);
+
+        // Return the simulation results
+        return {
+            initialBalance: balance,
+            finalBalance: finalBalance,
+            remainingPosition: remainingPosition,
+            performance: performance,
+            strategy: strategyEntity,
+        };
+    }
+
+    private calculatePerformance(
+        initialBalance: number,
+        finalBalance: number
+    ): number {
+        return ((finalBalance - initialBalance) / initialBalance) * 100;
     }
 }
 

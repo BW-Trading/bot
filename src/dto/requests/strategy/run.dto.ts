@@ -1,4 +1,4 @@
-import { IsNumberString } from "class-validator";
+import { IsNumberString, IsString } from "class-validator";
 import { DTO } from "../../dto";
 
 export class RunStrategyDto extends DTO {

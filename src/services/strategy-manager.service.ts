@@ -60,7 +60,8 @@ export class StrategyManagerService {
             // The market data is retrieve independently from the strategy execution to avoid blocking the execution and improve performance
             const marketData = await marketDataManager.retrieveMarketData(
                 strategy.id,
-                activeStrategy.getRequiredMarketData()
+                activeStrategy.getRequiredMarketData(),
+                strategy.asset
             );
             // Analyze the market data and generate signals for processing
             activeStrategy.analyze(marketData);

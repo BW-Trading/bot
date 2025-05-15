@@ -13,6 +13,7 @@ import { GetStrategyByIdPortfolioDto } from "../dto/requests/strategy/get-by-id-
 import { isAuthenticated } from "../middlewares/is-authenticated";
 import { CreatedStrategyDto } from "../dto/requests/strategy/created.dto";
 import { GetStrategyExecutionDto } from "../dto/requests/strategy/get-executions.dto";
+import { SimulationRequestDto } from "../dto/requests/strategy/simulation-request.dto";
 
 const strategyRouter = Router();
 
@@ -82,10 +83,15 @@ strategyRouter.post(
     StrategyController.stopStrategy
 );
 
-// strategyRouter.get(
+// .get(
 //     "/:id/portfolio",
 //     validateDto(GetStrategyByIdPortfolioDto, ValidationType.PARAMS),
 //     StrategyController.getPortfolio
 // );
 
+strategyRouter.post(
+    "/simulate",
+    validateDto(SimulationRequestDto, ValidationType.BODY),
+    StrategyController.startSimulation
+);
 export default strategyRouter;
