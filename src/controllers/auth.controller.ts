@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/send-response";
 import { ResponseOkDto } from "../dto/responses/response-ok.dto";
-import { User } from "../entities/user.entity";
+import { User } from "../../src/entities/user.entity";
 import { authService } from "../services/auth.service";
 import { plainToInstance } from "class-transformer";
 import { LoginDto } from "../dto/requests/auth/login.dto";

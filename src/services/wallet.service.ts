@@ -1,9 +1,8 @@
 import { Wallet } from "../entities/wallet.entity";
 import { WalletError } from "../errors/wallet.error";
-import { DecimalTransformer } from "../utils/decimal-transformer";
 import DatabaseManager from "./database-manager.service";
 
-class WalletService {
+export class WalletService {
     walletRepository = DatabaseManager.getAppDataSource().getRepository(Wallet);
 
     public async createSaveWallet(): Promise<Wallet> {

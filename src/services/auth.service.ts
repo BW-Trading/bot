@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { userService } from "./user.service";
-import { User } from "../entities/user.entity";
+import { User } from "../../src/entities/user.entity";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { appEnv } from "../utils/env/app-env";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";

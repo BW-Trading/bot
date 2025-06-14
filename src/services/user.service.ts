@@ -1,12 +1,11 @@
-import { Strategy } from "../entities/strategy.entity";
-import { User } from "../entities/user.entity";
+import { User } from "../../src/entities/user.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
 import DatabaseManager from "./database-manager.service";
 
-class UserService {
+export class UserService {
     private static getRepository() {
-        return DatabaseManager.getInstance().appDataSource.getRepository(User);
+        return DatabaseManager.getAppDataSource().getRepository(User);
     }
 
     async setArchived(uuid: string, archived: boolean) {

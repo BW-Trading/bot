@@ -9,11 +9,11 @@ import {
     OneToMany,
 } from "typeorm";
 import { StrategyInstanceEnum } from "./enums/strategies.enum";
-import { User } from "./user.entity";
 import { MarketDataAccount } from "./market-data-account.entity";
 import { Order } from "./order.entity";
 import { StrategyExecution } from "./strategy-execution.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
+import { User } from "../../src/entities/user.entity";
 
 export enum StrategyInstanceStatusEnum {
     ACTIVE = "active",

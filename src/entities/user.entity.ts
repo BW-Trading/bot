@@ -10,7 +10,6 @@ import { MarketDataAccount } from "./market-data-account.entity";
 import { Strategy } from "./strategy.entity";
 import { AsyncLocalStorage } from "async_hooks";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
-import { Position } from "./position.entity";
 
 const userContext = new AsyncLocalStorage<{ userId: string }>();
 
