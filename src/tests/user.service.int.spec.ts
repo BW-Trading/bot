@@ -5,7 +5,6 @@ import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
 import { UserService } from "../services/user.service";
 import { createTestDataSource } from "../test-datasource";
-import DatabaseManager from "../services/database-manager.service";
 
 describe("UserService – tests d’intégration", () => {
     let ds: DataSource;
@@ -22,7 +21,7 @@ describe("UserService – tests d’intégration", () => {
     beforeEach(async () => {
         userService = new UserService();
     });
-    it("should create a new user successfully", async () => {
+    it("create : should create a new user successfully", async () => {
         const username = "alice";
         const password = "pwd123";
         const salt = "salt";
@@ -37,7 +36,7 @@ describe("UserService – tests d’intégration", () => {
         expect(fromDb).toMatchObject({ username, password, salt });
     });
 
-    it("should throw AlreadyExistsError when creating a user with duplicate username", async () => {
+    it("create : should throw AlreadyExistsError when creating a user with duplicate username", async () => {
         const username = "bob";
         await userService.create(username, "pass", "salt");
         await expect(
@@ -45,19 +44,19 @@ describe("UserService – tests d’intégration", () => {
         ).rejects.toThrow(AlreadyExistsError);
     });
 
-    it("should return true if userExists finds a user", async () => {
+    it("userExists : should return true if userExists finds a user", async () => {
         const username = "charlie";
         await userService.create(username, "p", "s");
         const exists = await userService.userExists(username);
         expect(exists).toBe(true);
     });
 
-    it("should return false if userExists finds no user", async () => {
+    it("userExists : should return false if userExists finds no user", async () => {
         const exists = await userService.userExists("nonexistent");
         expect(exists).toBe(false);
     });
 
-    it("should find user by username or throw NotFoundError", async () => {
+    it("findByUsername : should find user by username or throw NotFoundError", async () => {
         const username = "david";
         await userService.create(username, "p", "s");
         const found = await userService.findByUsername(username);
@@ -68,7 +67,7 @@ describe("UserService – tests d’intégration", () => {
         );
     });
 
-    it("should find user by id or throw NotFoundError", async () => {
+    it("findById : should find user by id or throw NotFoundError", async () => {
         const user = await userService.create("eve", "p", "s");
         const found = await userService.findById(user.id);
         expect(found.id).toBe(user.id);
@@ -78,15 +77,35 @@ describe("UserService – tests d’intégration", () => {
         ).rejects.toThrow(NotFoundError);
     });
 
-    it("should set archived flag correctly", async () => {
+    it("setArchived : should set archived flag correctly", async () => {
         const user = await userService.create("frank", "p", "s");
-        // default archived false
         expect(user.archived).toBe(false);
-        console.log(" user:", user);
-        console.log(" user.id:", user.id);
         const updated = await userService.setArchived(user.id, true);
         expect(updated.archived).toBe(true);
         const reloaded = await userService.findById(user.id);
         expect(reloaded.archived).toBe(true);
+    });
+    it("setArchived : should unarchive a previously archived user", async () => {
+        const user = await userService.create("george", "p", "s");
+        await userService.setArchived(user.id, true);
+        const unarchived = await userService.setArchived(user.id, false);
+        expect(unarchived.archived).toBe(false);
+    });
+
+    it("setArchived : setArchived should throw NotFoundError for non-existent user id", async () => {
+        await expect(
+            userService.setArchived(
+                "00000000-0000-0000-0000-000000000000",
+                true
+            )
+        ).rejects.toThrow(NotFoundError);
+    });
+
+    it("userExists : userExists should return true for archived users", async () => {
+        const username = "henry";
+        const user = await userService.create(username, "p", "s");
+        await userService.setArchived(user.id, true);
+        const exists = await userService.userExists(username);
+        expect(exists).toBe(true);
     });
 });
