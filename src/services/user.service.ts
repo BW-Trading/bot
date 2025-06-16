@@ -9,7 +9,7 @@ export class UserService {
     }
 
     async setArchived(uuid: string, archived: boolean) {
-        const user = await this.findById(uuid, true);
+        const user = await this.findById(uuid);
         user.archived = archived;
         return UserService.getRepository().save(user);
     }
@@ -34,10 +34,9 @@ export class UserService {
         return user;
     }
 
-    async findById(uuid: string, includeArchived = false) {
+    async findById(uuid: string) {
         const user = await UserService.getRepository().findOneBy({
             id: uuid,
-            archived: includeArchived,
         });
 
         if (!user) {

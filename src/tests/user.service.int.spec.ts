@@ -86,7 +86,7 @@ describe("UserService – tests d’intégration", () => {
         console.log(" user.id:", user.id);
         const updated = await userService.setArchived(user.id, true);
         expect(updated.archived).toBe(true);
-        const reloaded = await userService.findById(user.id, true);
+        const reloaded = await userService.findById(user.id);
         expect(reloaded.archived).toBe(true);
     });
 });
