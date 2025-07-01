@@ -54,10 +54,7 @@ export class MarketDataAccountService {
         }
     }
 
-    async getmarketDataAccountForStrategyOrThrow(
-        strategyId: number,
-        userId: string
-    ) {
+    async getmarketDataAccountForStrategyOrThrow(strategyId: number) {
         let marketDataAccount: MarketDataAccount | null = null;
 
         try {
@@ -66,8 +63,7 @@ export class MarketDataAccountService {
                 .createQueryBuilder("account")
                 .leftJoinAndSelect("account.strategies", "strategy")
                 .leftJoinAndSelect("account.user", "user")
-                .where("user.id = :userId", { userId })
-                .andWhere("strategy.id = :strategyId", { strategyId })
+                .where("strategy.id = :strategyId", { strategyId })
                 .getOne();
         } catch (error) {
             console.error(

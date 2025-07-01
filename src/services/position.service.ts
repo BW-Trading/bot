@@ -97,8 +97,7 @@ export class PositionService {
         position.orders = [];
         position.marketDataAccount =
             await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
-                strategy.id,
-                strategy.user.id
+                strategy.id
             );
 
         return this.positionRepository.save(position);
