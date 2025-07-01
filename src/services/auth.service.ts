@@ -6,7 +6,7 @@ import { appEnv } from "../utils/env/app-env";
 import { UnauthenticatedError } from "../errors/unauthenticated.error";
 import { InvalidCredentialsError } from "../errors/invalid-credentials.error";
 
-class AuthService {
+export class AuthService {
     generateSalt(saltLength = 16) {
         return crypto.randomBytes(saltLength).toString("hex");
     }
