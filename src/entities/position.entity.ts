@@ -8,8 +8,8 @@ import {
 } from "typeorm";
 import { Order } from "./order.entity";
 import { TradeableAssetEnum } from "./enums/tradeable-asset.enum";
-import { MarketDataAccount } from "./market-data-account.entity";
 import { DecimalTransformer } from "../utils/decimal-transformer";
+import { MarketDataAccount } from "./market-data-account.entity";
 
 @Entity()
 export class Position {

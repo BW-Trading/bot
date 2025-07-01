@@ -1,4 +1,3 @@
-import { getConnection } from "typeorm";
 import { MarketDataAccount } from "../entities/market-data-account.entity";
 import { getContextUserId } from "../entities/user.entity";
 import { AlreadyExistsError } from "../errors/already-exists.error";
@@ -7,12 +6,14 @@ import DatabaseManager from "./database-manager.service";
 import { ExchangeApiEnum } from "./market-data/exchange-api.enum";
 import { walletService } from "./wallet.service";
 
-class MarketDataAccountService {
-    marketDataAccountRepository =
-        DatabaseManager.getInstance().appDataSource.getRepository(
-            MarketDataAccount
-        );
-
+export class MarketDataAccountService {
+    private getRepository() {
+        const dataSource = DatabaseManager.getAppDataSource();
+        if (!dataSource.isInitialized) {
+            throw new Error("DataSource is not initialized yet");
+        }
+        return dataSource.getRepository(MarketDataAccount);
+    }
     /**
      * Créé un market data account pour l'utilisateur connecté pour l'échange donné et l'apiKey donnée
      * On utilise une transaction pour s'assurer que le market data account et le wallet sont créés en même temps et ainsi qu'on ne créé pas de Wallet orphelin
@@ -53,13 +54,27 @@ class MarketDataAccountService {
         }
     }
 
-    async getmarketDataAccountForStrategyOrThrow(strategyId: number) {
-        const marketDataAccount =
-            await this.marketDataAccountRepository.findOne({
-                where: {
-                    strategies: { id: strategyId },
-                },
-            });
+    async getmarketDataAccountForStrategyOrThrow(
+        strategyId: number,
+        userId: string
+    ) {
+        let marketDataAccount: MarketDataAccount | null = null;
+
+        try {
+            const marketDataAccountRepository = this.getRepository();
+            marketDataAccount = await marketDataAccountRepository
+                .createQueryBuilder("account")
+                .leftJoinAndSelect("account.strategies", "strategy")
+                .leftJoinAndSelect("account.user", "user")
+                .where("user.id = :userId", { userId })
+                .andWhere("strategy.id = :strategyId", { strategyId })
+                .getOne();
+        } catch (error) {
+            console.error(
+                "Error fetching market data account for strategy:",
+                error
+            );
+        }
 
         if (!marketDataAccount) {
             throw new NotFoundError(
@@ -73,19 +88,21 @@ class MarketDataAccountService {
     }
 
     async existsByApiKey(apiKey: string) {
-        const marketDataAccount =
-            await this.marketDataAccountRepository.findOne({
-                where: {
-                    user: { id: getContextUserId() },
-                    apiKey,
-                },
-            });
+        const marketDataAccountRepository = this.getRepository();
+        const marketDataAccount = await marketDataAccountRepository.findOne({
+            where: {
+                user: { id: getContextUserId() },
+                apiKey,
+            },
+        });
 
         return !!marketDataAccount;
     }
 
     async getMarketDataAccounts() {
-        const marketDataAccounts = await this.marketDataAccountRepository.find({
+        const marketDataAccountRepository = this.getRepository();
+
+        const marketDataAccounts = await marketDataAccountRepository.find({
             where: {
                 user: { id: getContextUserId() },
             },
@@ -98,7 +115,9 @@ class MarketDataAccountService {
         marketDataAccountId: number,
         userId: string
     ) {
-        return this.marketDataAccountRepository.findOne({
+        const marketDataAccountRepository = this.getRepository();
+
+        return marketDataAccountRepository.findOne({
             where: {
                 id: marketDataAccountId,
                 user: { id: userId },

@@ -8,7 +8,7 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
-import { User } from "../../src/entities/user.entity";
+import { User } from "./user.entity";
 import { ExchangeApiEnum } from "../services/market-data/exchange-api.enum";
 import { Strategy } from "./strategy.entity";
 import { Wallet } from "./wallet.entity";

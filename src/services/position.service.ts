@@ -9,7 +9,7 @@ import DatabaseManager from "./database-manager.service";
 import { marketDataAccountService } from "./market-data-account.service";
 import { OrderSide } from "./market-data/market-data";
 
-class PositionService {
+export class PositionService {
     positionRepository =
         DatabaseManager.getAppDataSource().getRepository(Position);
 
@@ -17,7 +17,6 @@ class PositionService {
         const position = await this.positionRepository.findOneBy({
             asset: asset,
         });
-
         if (!position) {
             return this.createPosition(strategy, asset);
         }
@@ -91,11 +90,15 @@ class PositionService {
 
     async createPosition(strategy: Strategy, asset: TradeableAssetEnum) {
         const position = new Position();
+        position.totalQuantity = 0;
+        position.averageEntryPrice = 0;
+        position.realizedPnL = 0;
         position.asset = asset;
         position.orders = [];
         position.marketDataAccount =
             await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
-                strategy.id
+                strategy.id,
+                strategy.user.id
             );
 
         return this.positionRepository.save(position);
