@@ -6,11 +6,9 @@ import {
 import { Strategy } from "../entities/strategy.entity";
 import DatabaseManager from "./database-manager.service";
 
-class StrategyExecutionService {
-    private strategyExecutionRepository =
-        DatabaseManager.getInstance().appDataSource.getRepository(
-            StrategyExecution
-        );
+export class StrategyExecutionService {
+    strategyExecutionRepository =
+        DatabaseManager.getAppDataSource().getRepository(StrategyExecution);
 
     async hasActiveExecution(strategyId: number) {
         const execution = await this.strategyExecutionRepository.findOne({
