@@ -70,6 +70,17 @@ describe("StrategyExecutionService – integration tests", () => {
             const has = await service.hasActiveExecution(strategy.id);
             expect(has).toBe(false);
         });
+
+        it("should return true if a PENDING execution exists", async () => {
+            await service.create(strategy);
+            expect(await service.hasActiveExecution(strategy.id)).toBe(true);
+        });
+
+        it("should return true if an IN_PROGRESS execution exists", async () => {
+            const exec = await service.create(strategy);
+            await service.start(exec, {});
+            expect(await service.hasActiveExecution(strategy.id)).toBe(true);
+        });
     });
 
     describe("create()", () => {
@@ -81,12 +92,6 @@ describe("StrategyExecutionService – integration tests", () => {
 
             const fromDb = await execRepo.findOneBy({ id: exec.id });
             expect(fromDb).toBeTruthy();
-        });
-
-        it("then hasActiveExecution() returns true", async () => {
-            await service.create(strategy);
-            const has = await service.hasActiveExecution(strategy.id);
-            expect(has).toBe(true);
         });
     });
 
