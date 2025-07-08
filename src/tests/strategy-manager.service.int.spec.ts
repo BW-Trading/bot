@@ -9,7 +9,6 @@ import {
 import { User } from "../entities/user.entity";
 import { MarketDataAccount } from "../entities/market-data-account.entity";
 import { ExchangeApiEnum } from "../services/market-data/exchange-api.enum";
-import { strategyExecutionService } from "../services/strategy-execution.service";
 
 describe("StrategyManagerService – Integration Tests", () => {
     let ds: DataSource;

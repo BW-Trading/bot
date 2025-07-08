@@ -1,4 +1,3 @@
-import { Strategy } from "../entities/strategy.entity";
 import cron from "node-cron";
 import { AlreadyExistsError } from "../errors/already-exists.error";
 import { NotFoundError } from "../errors/not-found-error";
@@ -55,5 +54,12 @@ export class StrategySchedulerService {
 
     isScheduled(strategyId: number) {
         return this.scheduledStrategies.has(strategyId);
+    }
+
+    clearAll(): void {
+        for (const job of this.scheduledStrategies.values()) {
+            job.cronJob.stop();
+        }
+        this.scheduledStrategies.clear();
     }
 }
