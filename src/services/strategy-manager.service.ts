@@ -21,10 +21,8 @@ export class StrategyManagerService {
 
     async executeStrategy(strategyId: number, saveInstance = true) {
         const strategy = await strategyService.getByIdOrThrow(strategyId);
-
         // Get the active strategy instance if it exists or create a new one
         let activeStrategy = this.getActiveStrategy(strategy.id);
-
         if (!activeStrategy) {
             activeStrategy = await strategyService.instantiateStrategy(
                 strategy
@@ -39,7 +37,7 @@ export class StrategyManagerService {
         // Check if the strategy is already running
         if (await strategyExecutionService.hasActiveExecution(strategy.id)) {
             execution = await strategyExecutionService.create(strategy);
-            strategyExecutionService.fail(
+            await strategyExecutionService.fail(
                 execution,
                 "Strategy is already running"
             );
@@ -48,7 +46,6 @@ export class StrategyManagerService {
 
         // Create a StrategyExecution record
         execution = await strategyExecutionService.create(strategy);
-
         try {
             // Update the orders state before syncing the instance
             await orderService.updateOpenOrders(strategy);
@@ -79,12 +76,12 @@ export class StrategyManagerService {
             });
         } catch (error) {
             if (error instanceof CustomError) {
-                strategyExecutionService.fail(
+                await strategyExecutionService.fail(
                     execution,
                     error.toLogObject().toString()
                 );
             } else {
-                strategyExecutionService.fail(
+                await strategyExecutionService.fail(
                     execution,
                     "An unexpected error occurred while executing the strategy"
                 );

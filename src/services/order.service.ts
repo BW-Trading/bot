@@ -23,11 +23,16 @@ import { Position } from "../entities/position.entity";
 import { InternalServerError } from "../errors/internal-server.error";
 
 class OrderService {
-    private orderRepository =
-        DatabaseManager.getAppDataSource().getRepository(Order);
-
+    private getRepository() {
+        const dataSource = DatabaseManager.getAppDataSource();
+        if (!dataSource.isInitialized) {
+            throw new Error("DataSource is not initialized yet");
+        }
+        return dataSource.getRepository(Order);
+    }
     async getByIdOrThrow(id: number) {
-        const order = await this.orderRepository.findOneBy({
+        const orderRepository = this.getRepository();
+        const order = await orderRepository.findOneBy({
             id: id,
         });
 
@@ -55,9 +60,10 @@ class OrderService {
             strategy,
             tradeSignal.asset
         );
+        const orderRepository = this.getRepository();
 
         return (
-            await this.orderRepository
+            await orderRepository
                 .createQueryBuilder()
                 .insert()
                 .into(Order)
@@ -83,7 +89,8 @@ class OrderService {
     }
 
     async getByOrderIdOrThrow(orderId: string) {
-        const order = await this.orderRepository.findOneBy({
+        const orderRepository = this.getRepository();
+        const order = await orderRepository.findOneBy({
             orderId: orderId,
         });
 
@@ -99,7 +106,8 @@ class OrderService {
     }
 
     async getStrategyOrders(strategyId: number, status?: OrderStatus[]) {
-        return this.orderRepository.find({
+        const orderRepository = this.getRepository();
+        return orderRepository.find({
             where: {
                 strategy: { id: strategyId },
                 status: status ? In(status) : undefined,
@@ -138,8 +146,7 @@ class OrderService {
                 order.asset
             );
 
-            const totalSimulatedCost =
-                this.computeOrderTotalCost(order, 1); // TEMP fee = 1, to be replaced with real fee
+            const totalSimulatedCost = this.computeOrderTotalCost(order, 1); // TEMP fee = 1, to be replaced with real fee
 
             switch (order.side) {
                 case OrderSide.BUY:
@@ -165,10 +172,7 @@ class OrderService {
 
                 // Update wallet with real fee
                 const feeDifference = 1 - result.data.fee; // TEMP fee = 1, to be replaced with real fee
-                await walletService.addReservedBalance(
-                    wallet,
-                    feeDifference
-                );
+                await walletService.addReservedBalance(wallet, feeDifference);
             } else {
                 await this.rejected(
                     order,
@@ -191,8 +195,8 @@ class OrderService {
         order.status = OrderStatus.PENDING;
         order.orderId = placeOrderResponse.data.orderId;
         order.fee = placeOrderResponse.data.fee;
-
-        return await this.orderRepository.save(order);
+        const orderRepository = this.getRepository();
+        return await orderRepository.save(order);
     }
 
     /**
@@ -286,7 +290,8 @@ class OrderService {
     }
 
     async getUpdatedUserOrderStatus(orderId: number) {
-        const order = await this.orderRepository.findOne({
+        const orderRepository = this.getRepository();
+        const order = await orderRepository.findOne({
             where: {
                 id: orderId,
                 strategy: {
@@ -386,8 +391,8 @@ class OrderService {
         order.status = OrderStatus.PARTIALLY_FILLED;
         order.filledQuantity = filledQuantity;
         order.executedAt = new Date();
-
-        return await this.orderRepository.save(order);
+        const orderRepository = this.getRepository();
+        return await orderRepository.save(order);
     }
 
     async filled(order: Order, position: Position) {
@@ -471,16 +476,17 @@ class OrderService {
         order.status = OrderStatus.FILLED;
         order.filledQuantity = order.quantity;
         order.executedAt = new Date();
-
-        return await this.orderRepository.save(order);
+        const orderRepository = this.getRepository();
+        return await orderRepository.save(order);
     }
 
     async rejected(order: Order, reason: string) {
         order.status = OrderStatus.REJECTED;
         order.failReason = reason;
         order.canceledAt = new Date();
+        const orderRepository = this.getRepository();
 
-        return await this.orderRepository.save(order);
+        return await orderRepository.save(order);
     }
 
     async expired(order: Order) {
@@ -496,8 +502,9 @@ class OrderService {
             order.status = OrderStatus.EXPIRED;
 
             // Update position TBD
+            const orderRepository = this.getRepository();
 
-            return await this.orderRepository.save(order);
+            return await orderRepository.save(order);
         }
 
         order.status = OrderStatus.EXPIRED;
@@ -512,8 +519,9 @@ class OrderService {
         );
 
         // Update position TBD
+        const orderRepository = this.getRepository();
 
-        return await this.orderRepository.save(order);
+        return await orderRepository.save(order);
     }
 
     async canceled(order: Order) {
@@ -529,13 +537,15 @@ class OrderService {
             order.status = OrderStatus.CANCELED;
 
             // Update position TBD
+            const orderRepository = this.getRepository();
 
-            return await this.orderRepository.save(order);
+            return await orderRepository.save(order);
         }
 
         order.status = OrderStatus.CANCELED;
         order.canceledAt = new Date();
-        return await this.orderRepository.save(order);
+        const orderRepository = this.getRepository();
+        return await orderRepository.save(order);
     }
 
     async cancel(strategyId: number, order: Order) {

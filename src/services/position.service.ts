@@ -10,11 +10,16 @@ import { marketDataAccountService } from "./market-data-account.service";
 import { OrderSide } from "./market-data/market-data";
 
 export class PositionService {
-    positionRepository =
-        DatabaseManager.getAppDataSource().getRepository(Position);
-
+    private getRepository() {
+        const dataSource = DatabaseManager.getAppDataSource();
+        if (!dataSource.isInitialized) {
+            throw new Error("DataSource is not initialized yet");
+        }
+        return dataSource.getRepository(Position);
+    }
     async getOrCreatePosition(strategy: Strategy, asset: TradeableAssetEnum) {
-        const position = await this.positionRepository.findOneBy({
+        const positionRepository = this.getRepository();
+        const position = await positionRepository.findOneBy({
             asset: asset,
         });
         if (!position) {
@@ -25,7 +30,8 @@ export class PositionService {
     }
 
     async getOrderPositionOrThrow(order: Order) {
-        const position = await this.positionRepository.findOneBy({
+        const positionRepository = this.getRepository();
+        const position = await positionRepository.findOneBy({
             asset: order.asset,
         });
 
@@ -61,7 +67,8 @@ export class PositionService {
     }
 
     async getStrategyPositionOrThrow(strategy: Strategy) {
-        const position = await this.positionRepository.findOneBy({});
+        const positionRepository = this.getRepository();
+        const position = await positionRepository.findOneBy({});
 
         if (!position) {
             throw new NotFoundError(
@@ -75,7 +82,8 @@ export class PositionService {
     }
 
     async getByIdOrThrow(positionId: number) {
-        const position = await this.positionRepository.findOneBy({
+        const positionRepository = this.getRepository();
+        const position = await positionRepository.findOneBy({
             id: positionId,
         });
         if (!position) {
@@ -99,8 +107,8 @@ export class PositionService {
             await marketDataAccountService.getmarketDataAccountForStrategyOrThrow(
                 strategy.id
             );
-
-        return this.positionRepository.save(position);
+        const positionRepository = this.getRepository();
+        return positionRepository.save(position);
     }
 
     async updatePosition(
@@ -152,7 +160,8 @@ export class PositionService {
                 position.totalQuantity -= newQuantity;
                 break;
         }
-        return this.positionRepository.save(position);
+        const positionRepository = this.getRepository();
+        return positionRepository.save(position);
     }
 
     async isPositionEmpty(position: Position) {

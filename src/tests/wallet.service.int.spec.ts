@@ -1,4 +1,3 @@
-// tests/wallet.service.int.spec.ts
 import { DataSource } from "typeorm";
 import { Wallet } from "../entities/wallet.entity";
 import { WalletError } from "../errors/wallet.error";

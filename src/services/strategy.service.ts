@@ -20,9 +20,13 @@ import { InvalidInputError } from "../errors/invalid-input.error";
 import { BadRequestError } from "../errors/bad-request.error";
 
 class StrategyService {
-    private strategyRepository =
-        DatabaseManager.getInstance().appDataSource.getRepository(Strategy);
-
+    private getRepository() {
+        const dataSource = DatabaseManager.getAppDataSource();
+        if (!dataSource.isInitialized) {
+            throw new Error("DataSource is not initialized yet");
+        }
+        return dataSource.getRepository(Strategy);
+    }
     async instantiateStrategy(strategy: Strategy) {
         switch (strategy.strategyType) {
             case StrategyInstanceEnum.TEST:
@@ -37,7 +41,9 @@ class StrategyService {
     }
 
     async getUserStrategyByIdOrThrow(strategyId: number): Promise<Strategy> {
-        const strategy = await this.strategyRepository.findOneBy({
+        const strategyRepository = this.getRepository();
+
+        const strategy = await strategyRepository.findOneBy({
             id: strategyId,
             active: true,
             user: { id: getContextUserId() } as User,
@@ -53,7 +59,9 @@ class StrategyService {
     }
 
     async getByIdOrThrow(strategyId: number) {
-        const strategy = await this.strategyRepository.findOneBy({
+        const strategyRepository = this.getRepository();
+
+        const strategy = await strategyRepository.findOneBy({
             id: strategyId,
         });
 
@@ -69,7 +77,8 @@ class StrategyService {
     }
 
     async getByName(name: string) {
-        return await this.strategyRepository.findOneBy({
+        const strategyRepository = this.getRepository();
+        return await strategyRepository.findOneBy({
             name,
         });
     }
@@ -111,8 +120,8 @@ class StrategyService {
                 await orderService.cancel(strategy.id, order);
             }
         }
-
-        await this.strategyRepository.save(strategy);
+        const strategyRepository = this.getRepository();
+        await strategyRepository.save(strategy);
     }
 
     async archive(strategy: Strategy) {
@@ -137,8 +146,9 @@ class StrategyService {
         }
 
         strategy.active = false;
+        const strategyRepository = this.getRepository();
 
-        return this.strategyRepository.save(strategy);
+        return strategyRepository.save(strategy);
     }
 
     async getExistingImplementations() {
@@ -203,8 +213,9 @@ class StrategyService {
             id: marketDataAccountId,
         } as MarketDataAccount;
         strategy.active = true;
+        const strategyRepository = this.getRepository();
 
-        return this.strategyRepository.save(strategy);
+        return strategyRepository.save(strategy);
     }
 
     /**
@@ -220,7 +231,8 @@ class StrategyService {
         active: boolean = true,
         status: StrategyInstanceStatusEnum = StrategyInstanceStatusEnum.ACTIVE
     ) {
-        return this.strategyRepository.find({
+        const strategyRepository = this.getRepository();
+        return strategyRepository.find({
             where: {
                 user: { id: getContextUserId() } as User,
                 active: active,

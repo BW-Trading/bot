@@ -1,4 +1,3 @@
-// tests/strategy-execution.service.int.spec.ts
 import { DataSource, Repository } from "typeorm";
 import { createTestDataSource } from "../test-datasource";
 import { StrategyExecutionService } from "../services/strategy-execution.service";
